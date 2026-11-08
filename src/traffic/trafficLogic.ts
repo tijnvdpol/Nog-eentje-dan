@@ -3,6 +3,8 @@ import type { RoadGraph } from '../world/roadGraph';
 
 export interface TrafficCar {
   id: number; edgeId: string; dir: 1 | -1; lane: number; s: number; speed: number;
+  /** Where the car goes after this edge; chosen ahead of time so the lookahead can follow the route. */
+  next?: { edgeId: string; dir: 1 | -1; lane: number };
 }
 export interface PlayerObstacle { x: number; z: number }
 
@@ -13,6 +15,25 @@ const EMERGENCY_BRAKE = 12;
 const SPAWN_MIN_DIST = 60;
 const DESPAWN_MARGIN = 50;
 const SPAWN_ATTEMPTS = 10;
+const MIN_LOOKAHEAD = 80;
+const LOOKAHEAD_MARGIN = 20;
+/** Half-width of the "player is in my lane" corridor; wide enough for a car that spun sideways. */
+const PLAYER_LATERAL = 2.5;
+const CORNER_OVERLAP = 3;
+
+/**
+ * Position of the player along a lane, measured from the lane's start, if the player is within the lane
+ * corridor between `from` and `to` (metres along the lane); otherwise Infinity.
+ */
+function laneDistance(g: RoadGraph, edgeId: string, dir: 1 | -1, lane: number, player: PlayerObstacle, from: number, to: number): number {
+  const p = lanePose({ id: 0, edgeId, dir, lane, s: 0, speed: 0 }, g);
+  const fx = Math.sin(p.heading), fz = Math.cos(p.heading);
+  const dx = player.x - p.x, dz = player.z - p.z;
+  const along = dx * fx + dz * fz;
+  const lateral = dx * -fz + dz * fx;
+  if (along <= from || along > to || Math.abs(lateral) > PLAYER_LATERAL) return Infinity;
+  return along;
+}
 
 function edgeDir(g: RoadGraph, edgeId: string): { ax: number; az: number; dx: number; dz: number; len: number } {
   const e = g.edge(edgeId);
@@ -66,12 +87,13 @@ export class TrafficManager {
         let gap = Infinity;
         const leader = arr[i + 1];
         if (leader) gap = leader.s - c.s - CAR_LEN;
-        const pg = this.playerGap(c, player);
+        const pg = this.playerGap(c, player, c.speed);
         if (pg < gap) gap = pg;
         let target = limit;
         if (gap < Infinity) {
-          const safe = Math.max(0, (gap - CONFIG.traffic.minGapM) / CONFIG.traffic.headwaySec);
-          target = Math.min(limit, safe);
+          const free = Math.max(0, gap - CONFIG.traffic.minGapM);
+          // headway keeps distance in queues; the braking curve guarantees we can stop within the gap
+          target = Math.min(limit, free / CONFIG.traffic.headwaySec, Math.sqrt(2 * BRAKE * free));
         }
         if (target > c.speed) c.speed = Math.min(target, c.speed + ACCEL * dt);
         else {
@@ -93,37 +115,42 @@ export class TrafficManager {
     if (this.spawning) this.trySpawn(player);
   }
 
-  private playerGap(c: TrafficCar, player: PlayerObstacle): number {
-    const p = lanePose(c, this.g);
-    const fx = Math.sin(p.heading), fz = Math.cos(p.heading);
-    const rx = -fz, rz = fx;
-    const dx = player.x - p.x, dz = player.z - p.z;
-    const ahead = dx * fx + dz * fz;
-    const lateral = dx * rx + dz * rz;
-    if (ahead <= 0 || ahead > 80 || Math.abs(lateral) > 2) return Infinity;
-    return ahead - CAR_LEN;
+  /** Distance to the player along the car's route (current edge, then its next edge), or Infinity. */
+  private playerGap(c: TrafficCar, player: PlayerObstacle, speed: number): number {
+    // look at least as far as our stopping distance, so highway traffic sees a stopped player in time
+    const lookahead = Math.max(MIN_LOOKAHEAD, (speed * speed) / (2 * BRAKE) + CONFIG.traffic.minGapM + LOOKAHEAD_MARGIN);
+    const remaining = this.g.edgeLength(c.edgeId) - c.s;
+    // a little overlap at the node, so a player standing right in a bend is not missed
+    const here = laneDistance(this.g, c.edgeId, c.dir, c.lane, player, c.s, c.s + Math.min(lookahead, remaining + CORNER_OVERLAP));
+    if (here < Infinity) return here - c.s - CAR_LEN;
+    if (remaining >= lookahead) return Infinity;
+    const n = this.nextOf(c);
+    const there = laneDistance(this.g, n.edgeId, n.dir, n.lane, player, -CORNER_OVERLAP, lookahead - remaining);
+    return there < Infinity ? remaining + there - CAR_LEN : Infinity;
+  }
+
+  private nextOf(c: TrafficCar): NonNullable<TrafficCar['next']> {
+    if (c.next) return c.next;
+    const g = this.g;
+    const e = g.edge(c.edgeId);
+    const nodeId = c.dir === 1 ? e.to : e.from;
+    const options = g.edgesAt(nodeId).filter((x) => x.id !== e.id);
+    const next = options.length ? options[Math.floor(this.rng() * options.length) % options.length] : e;
+    const dir: 1 | -1 = next === e ? (c.dir === 1 ? -1 : 1) : next.from === nodeId ? 1 : -1;
+    let lane = Math.min(c.lane, next.lanesPerDir - 1);
+    if (next.lanesPerDir > 1 && lane === 0) lane = Math.floor(this.rng() * next.lanesPerDir) % next.lanesPerDir;
+    return (c.next = { edgeId: next.id, dir, lane });
   }
 
   private advanceEdge(c: TrafficCar): void {
-    const g = this.g;
-    let len = g.edgeLength(c.edgeId);
+    let len = this.g.edgeLength(c.edgeId);
     let guard = 4;
     while (c.s >= len && guard-- > 0) {
-      const e = g.edge(c.edgeId);
-      const nodeId = c.dir === 1 ? e.to : e.from;
-      const options = g.edgesAt(nodeId).filter((x) => x.id !== e.id);
-      const next = options.length ? options[Math.floor(this.rng() * options.length) % options.length] : e;
-      const over = c.s - len;
-      if (next === e) {
-        c.dir = (c.dir === 1 ? -1 : 1);
-      } else {
-        c.edgeId = next.id;
-        c.dir = next.from === nodeId ? 1 : -1;
-      }
-      c.lane = Math.min(c.lane, next.lanesPerDir - 1);
-      if (next.lanesPerDir > 1 && c.lane === 0) c.lane = Math.floor(this.rng() * next.lanesPerDir) % next.lanesPerDir;
-      c.s = over;
-      len = g.edgeLength(c.edgeId);
+      const n = this.nextOf(c);
+      c.s -= len;
+      c.edgeId = n.edgeId; c.dir = n.dir; c.lane = n.lane;
+      c.next = undefined;
+      len = this.g.edgeLength(c.edgeId);
     }
   }
 
@@ -140,6 +167,9 @@ export class TrafficManager {
       if (d < SPAWN_MIN_DIST || d > CONFIG.traffic.radiusM) continue;
       const clash = this.cars.some((o) => o.edgeId === e.id && o.dir === dir && o.lane === lane && Math.abs(o.s - s) < 20);
       if (clash) continue;
+      // never spawn at a speed from which we cannot stop for the player ahead
+      const pg = this.playerGap(car, player, car.speed);
+      if (pg < Infinity) car.speed = Math.min(car.speed, Math.sqrt(2 * BRAKE * Math.max(0, pg - CONFIG.traffic.minGapM)));
       this.nextId++;
       this.cars.push(car);
     }

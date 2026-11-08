@@ -62,3 +62,55 @@ it('never exceeds 30 cars and only within 300m', () => {
   }
   expect(m.cars.length).toBeGreaterThan(10);
 });
+
+it('stops in time for a stopped player at highway speed', () => {
+  // straight 1 km highway (+z), so lookahead is not limited by edge length
+  const hw = RoadGraph.fromData({
+    nodes: [{ id: 'a', x: 0, z: 0 }, { id: 'b', x: 0, z: 1000 }],
+    edges: [{ id: 'hw', from: 'a', to: 'b', lanesPerDir: 2, speedLimitKmh: 130, zone: 'snelweg' }],
+    places: [],
+  });
+  const v = 130 / 3.6;
+  const c: TrafficCar = { id: 1, edgeId: 'hw', dir: 1, lane: 0, s: 0, speed: v };
+  const m = TrafficManager.forTest(hw, [c]);
+  const player = lanePose({ ...c, s: 300 }, hw); // stopped in the lane, 300 m ahead
+  let minGap = Infinity;
+  for (let i = 0; i < 1200; i++) {
+    m.update(1 / 60, { x: player.x, z: player.z });
+    minGap = Math.min(minGap, 300 - c.s - 4.5);
+  }
+  expect(minGap).toBeGreaterThan(0); // never touches the player
+  expect(c.speed).toBeCloseTo(0, 1);
+  expect(300 - c.s - 4.5).toBeGreaterThanOrEqual(8 - 0.5); // keeps roughly the min gap
+});
+
+it('brakes for a stopped player around a bend of the ring', () => {
+  // ring edges are 125 m straight pieces; the player stands just past the corner, on the next edge
+  const e0 = g.edge('ring0');
+  const next = g.edgesAt(e0.to).find((e) => e.id !== 'ring0')!;
+  const player = lanePose({ id: 0, edgeId: next.id, dir: next.from === e0.to ? 1 : -1, lane: 1, s: 40, speed: 0 }, g);
+  const c: TrafficCar = { id: 1, edgeId: 'ring0', dir: 1, lane: 1, s: 0, speed: 130 / 3.6 };
+  const m = TrafficManager.forTest(g, [c], () => 0);
+  for (let i = 0; i < 1200; i++) {
+    m.update(1 / 60, { x: player.x, z: player.z });
+    const p = lanePose(c, g);
+    expect(Math.hypot(p.x - player.x, p.z - player.z)).toBeGreaterThan(4.5);
+  }
+  expect(c.speed).toBeCloseTo(0, 1);
+});
+
+it('spawns cars behind the player no faster than they can stop', () => {
+  const m = new TrafficManager(g, mulberry32(11));
+  const player = lanePose({ id: 0, edgeId: 'ring3', dir: 1, lane: 0, s: 60, speed: 0 }, g);
+  for (let i = 0; i < 1200; i++) {
+    m.update(1 / 60, { x: player.x, z: player.z });
+    for (const c of m.cars) {
+      // overlap = player within the car's own lane corridor and less than a car length away
+      const p = lanePose(c, g);
+      const fx = Math.sin(p.heading), fz = Math.cos(p.heading);
+      const dx = player.x - p.x, dz = player.z - p.z;
+      const along = dx * fx + dz * fz, lateral = dx * -fz + dz * fx;
+      expect(Math.abs(lateral) < 1.75 && Math.abs(along) < 4.5).toBe(false);
+    }
+  }
+});
