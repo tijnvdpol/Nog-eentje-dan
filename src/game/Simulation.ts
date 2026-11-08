@@ -1,5 +1,6 @@
 import type RAPIER from '@dimforge/rapier3d-compat';
 import { CONFIG } from '../config';
+import { nearRefillPlace } from '../beer/beerStock';
 import type { EventBus, GameEvents } from '../core/events';
 import { drunkEffects } from '../drunk/effects';
 import { DrunkInputFilter } from '../input/drunkInputFilter';
@@ -21,7 +22,6 @@ export interface SimulationDeps {
   taskDefs: unknown[]; postIds: ReadonlySet<string>;
 }
 
-const REFILL_PLACES = ['supermarkt', 'feestje'];
 
 /** One fixed simulation step of a run: input filter, player car, physics, traffic and the session. */
 export class Simulation {
@@ -74,10 +74,10 @@ export class Simulation {
   /** A post was liked (after the session counted it). */
   likedPost(postId: string): void { this.handleTasks(this.tasks.liked(postId)); }
 
-  /** Within 15 m of the supermarket or the party. */
+  /** Within refill range of the supermarket, the party or the filling station. */
   nearRefillPlace(): boolean {
     const { car, graph } = this.d;
-    return graph.places.some((p) => REFILL_PLACES.includes(p.id) && Math.hypot(p.x - car.state.x, p.z - car.state.z) <= CONFIG.beer.refillRadiusM);
+    return nearRefillPlace(graph.places, car.state.x, car.state.z);
   }
 
   private handleTasks(events: TaskEvent[]): void {

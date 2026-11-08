@@ -1,6 +1,12 @@
 import { CONFIG } from '../config';
+import type { Place } from '../world/types';
 
-/** The sixpack (spec fase 2 §4): a limited stock, refilled by standing still at the supermarket or the party. */
+/** True within refillRadiusM of a place where the sixpack can be refilled. */
+export function nearRefillPlace(places: readonly Place[], x: number, z: number): boolean {
+  return places.some((p) => CONFIG.beer.refillPlaces.includes(p.id) && Math.hypot(p.x - x, p.z - z) <= CONFIG.beer.refillRadiusM);
+}
+
+/** The sixpack (spec fase 2 §4): a limited stock, refilled by standing still at the supermarket, the party or the filling station. */
 export class BeerStock {
   private n: number;
   private hold = 0;

@@ -26,6 +26,7 @@ import { Screens } from './ui/Screens';
 import { mulberry32 } from './util/rng';
 import { PlayerCar } from './vehicle/PlayerCar';
 import { buildCity } from './world/CityBuilder';
+import { buildTankstation } from './world/TankstationView';
 import { buildVillage } from './world/VillageBuilder';
 import { generateVillageLayout } from './world/villageLayout';
 import { nwegDecor } from './world/nwegDecor';
@@ -45,7 +46,7 @@ const RED_LIGHT = [
   'Rood is ook maar een kleur 🔴', 'Stoplicht? Nooit van gehoord 😎', 'Groen, oranje, rood… allemaal mooi 🌈',
   'Wie remt, verliest 🏁', 'Dat was rood hè 😳 +punten', 'Regels zijn er om te breken 🚦',
 ];
-const BEER_EMPTY = 'Bier op 😱 Haal een nieuwe sixpack bij de supermarkt of het feestje.';
+const BEER_EMPTY = 'Bier op 😱 Haal een nieuwe sixpack bij de supermarkt, het feestje of het tankstation.';
 const REFILLED = 'Sixpack gescoord 🍻';
 
 const SCARED: Record<PedKind, [string, string]> = {
@@ -81,6 +82,7 @@ async function startGame(): Promise<void> {
   const renderer = new Renderer(canvas);
   buildCity(renderer.scene, world, graph, generateCityLayout(graph, CONFIG.world.seed));
   buildVillage(renderer.scene, world, graph, generateVillageLayout(graph, CONFIG.world.seed), nwegDecor(graph, mulberry32(CONFIG.world.seed)));
+  buildTankstation(renderer.scene, world);
   const cockpit = new Cockpit(renderer.camera);
   const post = new PostFX(renderer.gl, renderer.scene, renderer.camera);
   const trafficView = new TrafficView(renderer.scene, world);
@@ -108,7 +110,7 @@ async function startGame(): Promise<void> {
   const cupCount = document.createElement('span');
   cupCount.className = 'cup__count';
   cupBtn.appendChild(cupCount);
-  const refillPlaces = graph.places.filter((p) => p.id === 'supermarkt' || p.id === 'feestje');
+  const refillPlaces = graph.places.filter((p) => CONFIG.beer.refillPlaces.includes(p.id));
   const beerPins = refillPlaces.map(() => {
     const pin = document.createElement('div');
     pin.className = 'beer-pin'; pin.textContent = '🍺'; pin.hidden = true;

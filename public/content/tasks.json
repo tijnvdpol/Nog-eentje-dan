@@ -430,5 +430,49 @@
     "reward": 500,
     "target": "huis",
     "onSuccess": "Eindelijk! Het regent al een uur 🌧️"
+  },
+  {
+    "id": "dest09",
+    "type": "destination",
+    "from": "Opa 👴",
+    "text": "Neem je nog een zak drop mee van de pomp?",
+    "timeLimitSec": 130,
+    "reward": 420,
+    "target": "tankstation",
+    "onSuccess": "Drop! Je bent mijn favoriete kleinkind 🍬",
+    "onFail": "Dan maar geen drop. Zucht."
+  },
+  {
+    "id": "dest10",
+    "type": "destination",
+    "from": "Collega Kees ⛽",
+    "text": "Ik heb koffie nodig. Haal je hem bij het tankstation?",
+    "timeLimitSec": 140,
+    "reward": 450,
+    "target": "tankstation",
+    "onSuccess": "Zwart, twee suiker. Je bent een held ☕",
+    "onFail": "Koud geworden. Net als mijn vertrouwen."
+  },
+  {
+    "id": "dest11",
+    "type": "destination",
+    "from": "Buurman Henk 🍻",
+    "text": "Wij zitten in Café De Gouden Karper. Kom je ook?",
+    "timeLimitSec": 150,
+    "reward": 480,
+    "target": "dorpscafe",
+    "onSuccess": "Daar is-ie! Eerste ronde is voor jou 🍺",
+    "onFail": "We hebben jouw stoel maar vergeven."
+  },
+  {
+    "id": "dest12",
+    "type": "destination",
+    "from": "Tante Corrie 🎂",
+    "text": "Kom je op mijn verjaardag in het dorp? Het café is gereserveerd!",
+    "timeLimitSec": 120,
+    "reward": 500,
+    "target": "dorpscafe",
+    "onSuccess": "Gezellig! Neem een stukje taart 🍰",
+    "onFail": "Taart is op. Jammer voor jou."
   }
 ]

@@ -4,7 +4,7 @@ export const CONFIG = {
   like: { basePoints: 10, comboWindowSec: 2, comboStep: 0.25, comboMax: 3 },
   beer: { promillePerBeer: 0.3, decayPerSec: 0.005, drinkDurationSec: 1.5,
           steerFactorWhileDrinking: 0.5, multiplierPerBeer: 0.5, passOutAbove: 3.0,
-          stockMax: 6, refillRadiusM: 15, refillMaxKmh: 5, refillHoldSec: 2, emptyNoticeCooldownSec: 10, iconAtOrBelow: 2 },
+          stockMax: 6, refillPlaces: ['supermarkt', 'feestje', 'tankstation'] as readonly string[], refillRadiusM: 15, refillMaxKmh: 5, refillHoldSec: 2, emptyNoticeCooldownSec: 10, iconAtOrBelow: 2 },
   zone: { city: 1, nweg: 1.25, snelweg: 1.5, minSpeedFraction: 0.5 },
   damage: { thresholdKmh: 5, factor: 0.8, maxPerHit: 60, crackLevels: [25, 50, 75] },
   feed: { minGapBeforeRepeat: 20 },
