@@ -6,8 +6,8 @@ import { CONFIG } from './config';
 import { EventBus, type GameEvents } from './core/events';
 import { FixedStepLoop } from './core/loop';
 import { BlackoutTimer, drunkEffects } from './drunk/effects';
-import { DrunkInputFilter } from './input/drunkInputFilter';
-import { Input, type DriveInput } from './input/input';
+import { Simulation } from './game/Simulation';
+import { Input } from './input/input';
 import { Phone, type Post } from './phone/Phone';
 import { Cockpit } from './render/Cockpit';
 import { PostFX } from './render/PostFX';
@@ -15,7 +15,6 @@ import { Renderer } from './render/Renderer';
 import { formatEndLines } from './stats/runStats';
 import { GameSession } from './state/GameSession';
 import { LocalHighscoreStore } from './storage/highscore';
-import { TrafficManager } from './traffic/trafficLogic';
 import { TrafficView } from './traffic/TrafficView';
 import { Hud } from './ui/Hud';
 import { Screens } from './ui/Screens';
@@ -24,6 +23,7 @@ import { PlayerCar } from './vehicle/PlayerCar';
 import { buildCity } from './world/CityBuilder';
 import { generateCityLayout } from './world/cityLayout';
 import { RoadGraph } from './world/roadGraph';
+import { SignalView } from './world/SignalView';
 import type { RoadData } from './world/types';
 
 const INTRO: [string, string][] = [
@@ -61,6 +61,7 @@ async function startGame(): Promise<void> {
   const cockpit = new Cockpit(renderer.camera);
   const post = new PostFX(renderer.gl, renderer.scene, renderer.camera);
   const trafficView = new TrafficView(renderer.scene, world);
+  const signalView = new SignalView(renderer.scene, graph);
 
   const feestje = graph.places.find((p) => p.id === 'feestje')!;
   const spawn = { x: feestje.x - CONFIG.traffic.laneWidthM / 2, z: feestje.z, heading: 0 };
@@ -78,15 +79,13 @@ async function startGame(): Promise<void> {
 
   let session = new GameSession();
   let phone: Phone | null = null;
-  let traffic = new TrafficManager(graph, rng);
-  let filter = new DrunkInputFilter(rng);
+  const sim = new Simulation({ world, graph, car, trafficView, rng, bus });
   let blackout = new BlackoutTimer();
   let phase: Phase = 'menu';
-  let gameTime = 0;
-  let lastSteer = 0;
   let introTimers: number[] = [];
 
-  bus.on('like', ({ postId }) => { session.like(postId, gameTime); });
+  bus.on('like', ({ postId }) => { session.like(postId, sim.timeSec); });
+  bus.on('horn', () => { console.debug('horn'); });
   car.onImpact((kmh) => {
     const levels = session.impact(kmh);
     if (levels.length) { hud.showCracks(levels); bus.emit('cracks', { levels }); }
@@ -99,14 +98,12 @@ async function startGame(): Promise<void> {
     introTimers.forEach(clearTimeout); introTimers = [];
     session = new GameSession();
     car.teleport(spawn);
-    traffic.clear(); traffic = new TrafficManager(graph, rng);
-    filter = new DrunkInputFilter(rng);
+    sim.reset();
     blackout = new BlackoutTimer();
     blackoutEl.classList.remove('on');
     phone?.dispose();
     phone = new Phone(el('phone'), posts, bus, rng);
     hud.reset();
-    gameTime = 0;
     loop.reset();
     screens.hide();
     phase = 'playing';
@@ -145,19 +142,6 @@ async function startGame(): Promise<void> {
     );
   }
 
-  function simulate(dt: number, drive: DriveInput): void {
-    const fx = drunkEffects(session.promille);
-    const filtered = filter.apply(drive, fx, gameTime);
-    lastSteer = filtered.steer;
-    car.step(filtered, dt, { steerFactor: session.steerFactor, steerResponse: fx.steerResponse });
-    world.step(car.events);
-    car.syncFromPhysics();
-    traffic.update(dt, car.state);
-    trafficView.sync(traffic.cars, graph);
-    session.tick(dt, { speedKmh: car.speedKmh, ...graph.zoneAt(car.state.x, car.state.z), phoneUp: phone?.isUp() ?? false });
-    gameTime += dt;
-  }
-
   const projected = new THREE.Vector3();
   let last = performance.now();
   let fpsAcc = 0, fpsFrames = 0;
@@ -183,12 +167,12 @@ async function startGame(): Promise<void> {
       const steps = loop.advance(frameDt);
       const drive = input.drive();
       for (let i = 0; i < steps && phase === 'playing'; i++) {
-        simulate(CONFIG.loop.fixedDt, drive);
+        sim.step(CONFIG.loop.fixedDt, drive, session, phone?.isUp() ?? false);
         if (session.over) { finishRun(); break; }
       }
       blackoutEl.classList.toggle('on', blackout.update(frameDt, fx.blackoutPerSec, rng));
       phone?.applyEffects(fx);
-      hud.update({ score: session.score, speedKmh: car.speedKmh, damage: session.damage, promille: session.promille, multiplier: session.multiplier, combo: session.comboAt(gameTime) });
+      hud.update({ score: session.score, speedKmh: car.speedKmh, damage: session.damage, promille: session.promille, multiplier: session.multiplier, combo: session.comboAt(sim.timeSec) });
     }
 
     // camera follows the car (driver sits on the left)
@@ -196,8 +180,9 @@ async function startGame(): Promise<void> {
     const fx_ = Math.sin(heading), fz_ = Math.cos(heading);
     renderer.camera.position.set(x + fx_ * 0.2 + fz_ * 0.35, 1.2, z + fz_ * 0.2 - fx_ * 0.35);
     renderer.camera.rotation.set(0, heading + Math.PI, 0);
-    cockpit.update(lastSteer, session.drinkProgress);
-    post.apply(phase === 'playing' || phase === 'paused' ? fx : drunkEffects(0), gameTime);
+    cockpit.update(sim.lastSteer, session.drinkProgress);
+    signalView.update(sim.timeSec);
+    post.apply(phase === 'playing' || phase === 'paused' ? fx : drunkEffects(0), sim.timeSec);
     post.render();
 
     cupBtn.style.display = phase === 'playing' ? 'block' : 'none';
@@ -219,7 +204,7 @@ async function startGame(): Promise<void> {
   hud.reset();
   screens.showStart(newRun);
   requestAnimationFrame(frame);
-  (window as unknown as { __nogEentjeDan?: unknown }).__nogEentjeDan = debug ? { get session() { return session; }, car, traffic: () => traffic } : undefined;
+  (window as unknown as { __nogEentjeDan?: unknown }).__nogEentjeDan = debug ? { get session() { return session; }, car, sim } : undefined;
 }
 
 startGame().catch((err) => {
