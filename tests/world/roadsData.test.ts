@@ -6,14 +6,14 @@ import { RoadGraph } from '../../src/world/roadGraph';
 const data = buildRoadData();
 const g = RoadGraph.fromData(data);
 it('city is 6x6 blocks of 100m', () => {
-  expect(g.edges.filter((e) => e.zone === 'city').length).toBe(2 * 7 * 6);
+  expect(g.edgesOfKind('stad').length).toBe(2 * 7 * 6);
 });
 it('ring is ~4 km', () => {
-  const len = g.edges.filter((e) => e.speedLimitKmh === 130).reduce((s, e) => s + g.edgeLength(e.id), 0);
+  const len = g.edgesOfKind('ring').reduce((s, e) => s + g.edgeLength(e.id), 0);
   expect(len).toBeGreaterThan(3800); expect(len).toBeLessThan(4200);
 });
 it('has 3 ramps and all 4 places', () => {
-  expect(g.edges.filter((e) => e.speedLimitKmh === 80).length).toBe(3);
+  expect(g.edgesOfKind('oprit').length).toBe(3);
   expect(g.places.map((p) => p.id).sort()).toEqual(['feestje', 'huis', 'snackbar', 'supermarkt']);
 });
 it('every node is reachable from every other', () => {
@@ -45,3 +45,10 @@ it('crossing ids are unique and follow x_<edgeId>_<s>', () => {
   for (const c of g.crossings) expect(c.id).toBe(`x_${c.edgeId}_${c.s}`);
 });
 it('no crossing on a ramp', () => { expect(g.crossings.every((c) => g.edge(c.edgeId).zone === 'city')).toBe(true); });
+
+it('every edge has a kind; 84 stad, 32 ring, 3 oprit', () => {
+  expect(g.edges.every((e) => !!e.kind)).toBe(true);
+  expect(g.edgesOfKind('stad').length).toBe(84);
+  expect(g.edgesOfKind('ring').length).toBe(32);
+  expect(g.edgesOfKind('oprit').length).toBe(3);
+});

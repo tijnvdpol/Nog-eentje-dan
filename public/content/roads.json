@@ -413,7 +413,8 @@
       "to": "g1_0",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv0_0",
@@ -421,7 +422,8 @@
       "to": "g0_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch0_1",
@@ -429,7 +431,8 @@
       "to": "g1_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv0_1",
@@ -437,7 +440,8 @@
       "to": "g0_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch0_2",
@@ -445,7 +449,8 @@
       "to": "g1_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv0_2",
@@ -453,7 +458,8 @@
       "to": "g0_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch0_3",
@@ -461,7 +467,8 @@
       "to": "g1_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv0_3",
@@ -469,7 +476,8 @@
       "to": "g0_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch0_4",
@@ -477,7 +485,8 @@
       "to": "g1_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv0_4",
@@ -485,7 +494,8 @@
       "to": "g0_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch0_5",
@@ -493,7 +503,8 @@
       "to": "g1_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv0_5",
@@ -501,7 +512,8 @@
       "to": "g0_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch0_6",
@@ -509,7 +521,8 @@
       "to": "g1_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch1_0",
@@ -517,7 +530,8 @@
       "to": "g2_0",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv1_0",
@@ -525,7 +539,8 @@
       "to": "g1_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch1_1",
@@ -533,7 +548,8 @@
       "to": "g2_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv1_1",
@@ -541,7 +557,8 @@
       "to": "g1_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch1_2",
@@ -549,7 +566,8 @@
       "to": "g2_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv1_2",
@@ -557,7 +575,8 @@
       "to": "g1_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch1_3",
@@ -565,7 +584,8 @@
       "to": "g2_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv1_3",
@@ -573,7 +593,8 @@
       "to": "g1_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch1_4",
@@ -581,7 +602,8 @@
       "to": "g2_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv1_4",
@@ -589,7 +611,8 @@
       "to": "g1_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch1_5",
@@ -597,7 +620,8 @@
       "to": "g2_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv1_5",
@@ -605,7 +629,8 @@
       "to": "g1_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch1_6",
@@ -613,7 +638,8 @@
       "to": "g2_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch2_0",
@@ -621,7 +647,8 @@
       "to": "g3_0",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv2_0",
@@ -629,7 +656,8 @@
       "to": "g2_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch2_1",
@@ -637,7 +665,8 @@
       "to": "g3_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv2_1",
@@ -645,7 +674,8 @@
       "to": "g2_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch2_2",
@@ -653,7 +683,8 @@
       "to": "g3_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv2_2",
@@ -661,7 +692,8 @@
       "to": "g2_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch2_3",
@@ -669,7 +701,8 @@
       "to": "g3_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv2_3",
@@ -677,7 +710,8 @@
       "to": "g2_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch2_4",
@@ -685,7 +719,8 @@
       "to": "g3_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv2_4",
@@ -693,7 +728,8 @@
       "to": "g2_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch2_5",
@@ -701,7 +737,8 @@
       "to": "g3_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv2_5",
@@ -709,7 +746,8 @@
       "to": "g2_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch2_6",
@@ -717,7 +755,8 @@
       "to": "g3_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch3_0",
@@ -725,7 +764,8 @@
       "to": "g4_0",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv3_0",
@@ -733,7 +773,8 @@
       "to": "g3_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch3_1",
@@ -741,7 +782,8 @@
       "to": "g4_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv3_1",
@@ -749,7 +791,8 @@
       "to": "g3_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch3_2",
@@ -757,7 +800,8 @@
       "to": "g4_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv3_2",
@@ -765,7 +809,8 @@
       "to": "g3_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch3_3",
@@ -773,7 +818,8 @@
       "to": "g4_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv3_3",
@@ -781,7 +827,8 @@
       "to": "g3_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch3_4",
@@ -789,7 +836,8 @@
       "to": "g4_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv3_4",
@@ -797,7 +845,8 @@
       "to": "g3_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch3_5",
@@ -805,7 +854,8 @@
       "to": "g4_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv3_5",
@@ -813,7 +863,8 @@
       "to": "g3_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch3_6",
@@ -821,7 +872,8 @@
       "to": "g4_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch4_0",
@@ -829,7 +881,8 @@
       "to": "g5_0",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv4_0",
@@ -837,7 +890,8 @@
       "to": "g4_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch4_1",
@@ -845,7 +899,8 @@
       "to": "g5_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv4_1",
@@ -853,7 +908,8 @@
       "to": "g4_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch4_2",
@@ -861,7 +917,8 @@
       "to": "g5_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv4_2",
@@ -869,7 +926,8 @@
       "to": "g4_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch4_3",
@@ -877,7 +935,8 @@
       "to": "g5_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv4_3",
@@ -885,7 +944,8 @@
       "to": "g4_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch4_4",
@@ -893,7 +953,8 @@
       "to": "g5_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv4_4",
@@ -901,7 +962,8 @@
       "to": "g4_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch4_5",
@@ -909,7 +971,8 @@
       "to": "g5_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv4_5",
@@ -917,7 +980,8 @@
       "to": "g4_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch4_6",
@@ -925,7 +989,8 @@
       "to": "g5_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch5_0",
@@ -933,7 +998,8 @@
       "to": "g6_0",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv5_0",
@@ -941,7 +1007,8 @@
       "to": "g5_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch5_1",
@@ -949,7 +1016,8 @@
       "to": "g6_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv5_1",
@@ -957,7 +1025,8 @@
       "to": "g5_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch5_2",
@@ -965,7 +1034,8 @@
       "to": "g6_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv5_2",
@@ -973,7 +1043,8 @@
       "to": "g5_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch5_3",
@@ -981,7 +1052,8 @@
       "to": "g6_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv5_3",
@@ -989,7 +1061,8 @@
       "to": "g5_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch5_4",
@@ -997,7 +1070,8 @@
       "to": "g6_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv5_4",
@@ -1005,7 +1079,8 @@
       "to": "g5_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch5_5",
@@ -1013,7 +1088,8 @@
       "to": "g6_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv5_5",
@@ -1021,7 +1097,8 @@
       "to": "g5_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ch5_6",
@@ -1029,7 +1106,8 @@
       "to": "g6_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv6_0",
@@ -1037,7 +1115,8 @@
       "to": "g6_1",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv6_1",
@@ -1045,7 +1124,8 @@
       "to": "g6_2",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv6_2",
@@ -1053,7 +1133,8 @@
       "to": "g6_3",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv6_3",
@@ -1061,7 +1142,8 @@
       "to": "g6_4",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv6_4",
@@ -1069,7 +1151,8 @@
       "to": "g6_5",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "cv6_5",
@@ -1077,7 +1160,8 @@
       "to": "g6_6",
       "lanesPerDir": 1,
       "speedLimitKmh": 50,
-      "zone": "city"
+      "zone": "city",
+      "kind": "stad"
     },
     {
       "id": "ring0",
@@ -1085,7 +1169,8 @@
       "to": "r1",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring1",
@@ -1093,7 +1178,8 @@
       "to": "r2",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring2",
@@ -1101,7 +1187,8 @@
       "to": "r3",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring3",
@@ -1109,7 +1196,8 @@
       "to": "r4",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring4",
@@ -1117,7 +1205,8 @@
       "to": "r5",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring5",
@@ -1125,7 +1214,8 @@
       "to": "r6",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring6",
@@ -1133,7 +1223,8 @@
       "to": "r7",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring7",
@@ -1141,7 +1232,8 @@
       "to": "r8",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring8",
@@ -1149,7 +1241,8 @@
       "to": "r9",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring9",
@@ -1157,7 +1250,8 @@
       "to": "r10",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring10",
@@ -1165,7 +1259,8 @@
       "to": "r11",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring11",
@@ -1173,7 +1268,8 @@
       "to": "r12",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring12",
@@ -1181,7 +1277,8 @@
       "to": "r13",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring13",
@@ -1189,7 +1286,8 @@
       "to": "r14",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring14",
@@ -1197,7 +1295,8 @@
       "to": "r15",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring15",
@@ -1205,7 +1304,8 @@
       "to": "r16",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring16",
@@ -1213,7 +1313,8 @@
       "to": "r17",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring17",
@@ -1221,7 +1322,8 @@
       "to": "r18",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring18",
@@ -1229,7 +1331,8 @@
       "to": "r19",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring19",
@@ -1237,7 +1340,8 @@
       "to": "r20",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring20",
@@ -1245,7 +1349,8 @@
       "to": "r21",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring21",
@@ -1253,7 +1358,8 @@
       "to": "r22",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring22",
@@ -1261,7 +1367,8 @@
       "to": "r23",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring23",
@@ -1269,7 +1376,8 @@
       "to": "r24",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring24",
@@ -1277,7 +1385,8 @@
       "to": "r25",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring25",
@@ -1285,7 +1394,8 @@
       "to": "r26",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring26",
@@ -1293,7 +1403,8 @@
       "to": "r27",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring27",
@@ -1301,7 +1412,8 @@
       "to": "r28",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring28",
@@ -1309,7 +1421,8 @@
       "to": "r29",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring29",
@@ -1317,7 +1430,8 @@
       "to": "r30",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring30",
@@ -1325,7 +1439,8 @@
       "to": "r31",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "ring31",
@@ -1333,7 +1448,8 @@
       "to": "r0",
       "lanesPerDir": 2,
       "speedLimitKmh": 130,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "ring"
     },
     {
       "id": "opr0",
@@ -1341,7 +1457,8 @@
       "to": "r28",
       "lanesPerDir": 1,
       "speedLimitKmh": 80,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "oprit"
     },
     {
       "id": "opr1",
@@ -1349,7 +1466,8 @@
       "to": "r20",
       "lanesPerDir": 1,
       "speedLimitKmh": 80,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "oprit"
     },
     {
       "id": "opr2",
@@ -1357,7 +1475,8 @@
       "to": "r8",
       "lanesPerDir": 1,
       "speedLimitKmh": 80,
-      "zone": "snelweg"
+      "zone": "snelweg",
+      "kind": "oprit"
     }
   ],
   "signals": [

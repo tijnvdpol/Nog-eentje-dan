@@ -3,7 +3,7 @@ import { buildRoadData } from '../../scripts/generate-roads';
 import { RoadGraph } from '../../src/world/roadGraph';
 const g = RoadGraph.fromData(buildRoadData());
 it('rejects edges to unknown nodes', () => {
-  expect(() => RoadGraph.fromData({ nodes: [{ id: 'a', x: 0, z: 0 }], edges: [{ id: 'e', from: 'a', to: 'x', lanesPerDir: 1, speedLimitKmh: 50, zone: 'city' }], places: [] })).toThrow();
+  expect(() => RoadGraph.fromData({ nodes: [{ id: 'a', x: 0, z: 0 }], edges: [{ id: 'e', from: 'a', to: 'x', lanesPerDir: 1, speedLimitKmh: 50, zone: 'city', kind: 'stad' }], places: [] })).toThrow();
 });
 it('rejects duplicate ids', () => {
   expect(() => RoadGraph.fromData({ nodes: [{ id: 'a', x: 0, z: 0 }, { id: 'a', x: 1, z: 0 }], edges: [], places: [] })).toThrow();
@@ -15,7 +15,7 @@ it('nearestEdge and zoneAt', () => {
 });
 const tiny = (extra: object) => ({
   nodes: [{ id: 'a', x: 0, z: 0 }, { id: 'b', x: 0, z: 100 }],
-  edges: [{ id: 'e', from: 'a', to: 'b', lanesPerDir: 1, speedLimitKmh: 50, zone: 'city' as const }],
+  edges: [{ id: 'e', from: 'a', to: 'b', lanesPerDir: 1, speedLimitKmh: 50, zone: 'city' as const, kind: 'stad' as const }],
   places: [], signals: [], crossings: [], ...extra,
 });
 it('axisOf and isIntersection', () => {
@@ -34,4 +34,9 @@ it('rejects a crossing outside the edge', () => {
 });
 it('rejects a signal on an unknown node', () => {
   expect(() => RoadGraph.fromData(tiny({ signals: [{ nodeId: 'zz', offsetSec: 0 }] }))).toThrow();
+});
+
+it('ring nodes are found by kind, not by id', () => {
+  expect(g.isRingNode('r0')).toBe(true); expect(g.isRingNode('g3_3')).toBe(false);
+  expect(g.isIntersection('r28')).toBe(false); expect(g.isIntersection('g3_3')).toBe(true);
 });

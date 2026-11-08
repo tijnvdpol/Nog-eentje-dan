@@ -66,7 +66,7 @@ export function buildCity(scene: THREE.Scene, world: RAPIER.World, g: RoadGraph,
   // Street lamps along city streets
   const lampPositions: [number, number][] = [];
   for (const e of g.edges) {
-    if (e.zone !== 'city') continue;
+    if (e.kind !== 'stad') continue;
     const a = g.node(e.from), b = g.node(e.to);
     const len = g.edgeLength(e.id);
     const fx = (b.x - a.x) / len, fz = (b.z - a.z) / len;
@@ -83,7 +83,7 @@ export function buildCity(scene: THREE.Scene, world: RAPIER.World, g: RoadGraph,
   scene.add(poles, bulbs);
 
   // Trees around the ring road area
-  const ringEdges = g.edges.filter((e) => e.speedLimitKmh === 130);
+  const ringEdges = g.edgesOfKind('ring');
   const trees: [number, number, number][] = [];
   for (const e of ringEdges) {
     const a = g.node(e.from), b = g.node(e.to);
@@ -110,7 +110,7 @@ export function buildCity(scene: THREE.Scene, world: RAPIER.World, g: RoadGraph,
   scene.add(trunks, crowns);
 
   // Guard rails along the ring (open towards ramps on the inside)
-  const rampNodes = new Set(g.edges.filter((e) => e.speedLimitKmh === 80).flatMap((e) => [e.from, e.to]));
+  const rampNodes = new Set(g.edgesOfKind('oprit').flatMap((e) => [e.from, e.to]));
   const rails: { x: number; z: number; yaw: number; len: number }[] = [];
   for (const e of ringEdges) {
     const a = g.node(e.from), b = g.node(e.to);

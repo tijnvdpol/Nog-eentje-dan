@@ -67,7 +67,7 @@ it('stops in time for a stopped player at highway speed', () => {
   // straight 1 km highway (+z), so lookahead is not limited by edge length
   const hw = RoadGraph.fromData({
     nodes: [{ id: 'a', x: 0, z: 0 }, { id: 'b', x: 0, z: 1000 }],
-    edges: [{ id: 'hw', from: 'a', to: 'b', lanesPerDir: 2, speedLimitKmh: 130, zone: 'snelweg' }],
+    edges: [{ id: 'hw', from: 'a', to: 'b', lanesPerDir: 2, speedLimitKmh: 130, zone: 'snelweg', kind: 'ring' }],
     places: [],
   });
   const v = 130 / 3.6;

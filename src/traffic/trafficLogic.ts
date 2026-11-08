@@ -239,7 +239,7 @@ export class TrafficManager {
       const len = g.edgeLength(c.edgeId);
       if (g.isIntersection(nodeId))
         line = { nodeId, kind: 'intersection', stopS: len - (g.signalAt(nodeId) ? CONFIG.signals.stopLineSignalM : CONFIG.signals.stopLineM) };
-      else if (isRingNode(nodeId) && !isRingEdge(c.edgeId)) line = { nodeId, kind: 'merge', stopS: len - MERGE_LINE_M };
+      else if (isRingNode(g, nodeId) && !isRingEdge(g, c.edgeId)) line = { nodeId, kind: 'merge', stopS: len - MERGE_LINE_M };
       else line = null;
       this.stopLines.set(k, line);
     }
@@ -256,7 +256,7 @@ export class TrafficManager {
     if (!idx.isFree(n.edgeId, n.dir, n.lane, 0, 0, CONFIG.ring.mergeAheadM, c.id)) return false;
     const nodeId = endNode(g, c);
     for (const p of g.edgesAt(nodeId)) {
-      if (p.id === n.edgeId || !isRingEdge(p.id)) continue;
+      if (p.id === n.edgeId || !isRingEdge(g, p.id)) continue;
       const dir: 1 | -1 = p.to === nodeId ? 1 : -1;
       const lenP = g.edgeLength(p.id);
       const behind = idx.nearestBehind(p.id, dir, n.lane, lenP);

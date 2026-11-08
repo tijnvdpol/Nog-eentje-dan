@@ -1,7 +1,8 @@
 import type { Zone } from '../config';
 
 export interface RoadNode { id: string; x: number; z: number }
-export interface RoadEdge { id: string; from: string; to: string; lanesPerDir: number; speedLimitKmh: number; zone: Zone }
+export type RoadKind = 'stad' | 'ring' | 'oprit' | 'nweg' | 'dorp';
+export interface RoadEdge { id: string; from: string; to: string; lanesPerDir: number; speedLimitKmh: number; zone: Zone; kind: RoadKind }
 export interface Place { id: 'feestje' | 'snackbar' | 'supermarkt' | 'huis'; name: string; x: number; z: number }
 export interface SignalSpec { nodeId: string; offsetSec: number }
 /** A zebra crossing on `edgeId`, centred `s` metres from the edge's `from` node. */

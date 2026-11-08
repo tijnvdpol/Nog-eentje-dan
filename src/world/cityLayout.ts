@@ -6,7 +6,7 @@ const PALETTE = [0x8a8f98, 0xb4a48a, 0x9c6b5a, 0x6f8a9c, 0xa8b0a0, 0xc9b48a];
 
 export function generateCityLayout(graph: RoadGraph, seed: number): BuildingSpec[] {
   const rng = mulberry32(seed);
-  const cityNodes = graph.nodes.filter((n) => n.id.startsWith('g'));
+  const cityNodes = graph.nodes.filter((n) => graph.edgesAt(n.id).some((e) => e.kind === 'stad'));
   const xs = [...new Set(cityNodes.map((n) => n.x))].sort((a, b) => a - b);
   const zs = [...new Set(cityNodes.map((n) => n.z))].sort((a, b) => a - b);
   const out: BuildingSpec[] = [];

@@ -6,8 +6,8 @@ import type { TrafficCar } from './trafficLogic';
 
 export type NextHop = NonNullable<TrafficCar['next']>;
 
-export const isRingEdge = (id: string) => id.startsWith('ring');
-export const isRingNode = (id: string) => id.startsWith('r');
+export const isRingEdge = (g: RoadGraph, id: string) => g.edge(id).kind === 'ring';
+export const isRingNode = (g: RoadGraph, id: string) => g.isRingNode(id);
 
 /** The node a car drives towards. */
 export function endNode(g: RoadGraph, c: Pick<TrafficCar, 'edgeId' | 'dir'>): string {
@@ -28,10 +28,10 @@ export function chooseNext(g: RoadGraph, c: TrafficCar, rng: () => number): Next
   const nodeId = endNode(g, c);
   const options = g.edgesAt(nodeId).filter((x) => x.id !== e.id);
   if (!options.length) return { edgeId: e.id, dir: c.dir === 1 ? -1 : 1, lane: c.lane };
-  if (isRingNode(nodeId)) {
-    const ring = options.filter((x) => isRingEdge(x.id));
-    if (!isRingEdge(e.id)) return hop(ring[Math.floor(rng() * ring.length) % ring.length], nodeId, 0);
-    const exits = options.filter((x) => !isRingEdge(x.id));
+  if (isRingNode(g, nodeId)) {
+    const ring = options.filter((x) => isRingEdge(g, x.id));
+    if (!isRingEdge(g, e.id)) return hop(ring[Math.floor(rng() * ring.length) % ring.length], nodeId, 0);
+    const exits = options.filter((x) => !isRingEdge(g, x.id));
     if (exits.length && c.lane === 0 && rng() < CONFIG.ring.exitProb) return hop(exits[0], nodeId, 0);
     return hop(ring[0], nodeId, c.lane);
   }
@@ -44,7 +44,7 @@ export function chooseNext(g: RoadGraph, c: TrafficCar, rng: () => number): Next
  * new edge and the tail of the edge it just left).
  */
 export function maybeChangeLane(g: RoadGraph, c: TrafficCar, prev: { edgeId: string; dir: 1 | -1 }, idx: LaneIndex, rng: () => number): void {
-  if (!isRingEdge(prev.edgeId) || !isRingEdge(c.edgeId) || g.edge(c.edgeId).lanesPerDir < 2) return;
+  if (!isRingEdge(g, prev.edgeId) || !isRingEdge(g, c.edgeId) || g.edge(c.edgeId).lanesPerDir < 2) return;
   if ((c.laneT ?? 1) < 1 || rng() >= CONFIG.ring.laneChangeProb) return;
   const other = c.lane === 0 ? 1 : 0;
   const free = CONFIG.ring.laneChangeFreeM;

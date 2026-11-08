@@ -1,5 +1,5 @@
 import type { Zone } from '../config';
-import type { Crossing, Place, RoadDataInput, RoadEdge, RoadNode, SignalSpec } from './types';
+import type { Crossing, Place, RoadDataInput, RoadEdge, RoadKind, RoadNode, SignalSpec } from './types';
 
 export type Axis = 'nz' | 'ow';
 
@@ -14,6 +14,7 @@ export class RoadGraph {
   readonly signals: readonly SignalSpec[];
   readonly crossings: readonly Crossing[];
   private signalMap = new Map<string, SignalSpec>();
+  private ringNodes = new Set<string>();
 
   private constructor(d: RoadDataInput) {
     for (const n of d.nodes) {
@@ -29,6 +30,7 @@ export class RoadGraph {
       this.lengths.set(e.id, Math.hypot(b.x - a.x, b.z - a.z));
       this.byNode.get(e.from)!.push(e);
       this.byNode.get(e.to)!.push(e);
+      if (e.kind === 'ring') { this.ringNodes.add(e.from); this.ringNodes.add(e.to); }
     }
     this.edges = d.edges;
     this.places = d.places;
@@ -50,9 +52,14 @@ export class RoadGraph {
 
   signalAt(nodeId: string): SignalSpec | undefined { return this.signalMap.get(nodeId); }
 
-  /** A node where traffic needs right of way: >= 3 edges and not part of the ring (ring node ids start with 'r'). */
+  edgesOfKind(kind: RoadKind): readonly RoadEdge[] { return this.edges.filter((e) => e.kind === kind); }
+
+  /** True when an adjacent edge is part of the ring road. */
+  isRingNode(nodeId: string): boolean { return this.ringNodes.has(nodeId); }
+
+  /** A node where traffic needs right of way: >= 3 edges and not part of the ring. */
   isIntersection(nodeId: string): boolean {
-    return !nodeId.startsWith('r') && this.edgesAt(nodeId).length >= 3;
+    return !this.isRingNode(nodeId) && this.edgesAt(nodeId).length >= 3;
   }
 
   /** 'ow' (east-west) when the edge runs mostly along x, otherwise 'nz'. */
