@@ -2,6 +2,8 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
 import './ui/ui.css';
 import './phone/phone.css';
+import { AudioEngine } from './audio/AudioEngine';
+import { isSlipping } from './audio/soundParams';
 import { CONFIG } from './config';
 import { EventBus, type GameEvents } from './core/events';
 import { FixedStepLoop } from './core/loop';
@@ -110,30 +112,39 @@ async function startGame(): Promise<void> {
     return pin;
   });
   let lastEmptyNotice = -Infinity;
+  const audio = AudioEngine.create(window);
+  void audio.loadOverrides();
+  /** Every phone notification pings. */
+  const notify = (from: string, text: string) => { if (!phone) return; phone.notify(from, text); audio.play('ping'); };
   let blackout = new BlackoutTimer();
   let phase: Phase = 'menu';
   let introTimers: number[] = [];
 
   bus.on('like', ({ postId }) => { session.like(postId, sim.timeSec); sim.likedPost(postId); });
-  bus.on('redLight', () => { phone?.notify('🚦', RED_LIGHT[Math.floor(rng() * RED_LIGHT.length) % RED_LIGHT.length]); });
-  bus.on('refilled', () => { phone?.notify('🍺', REFILLED); });
-  bus.on('beerEmpty', () => { phone?.notify('🍺', BEER_EMPTY); });
+  bus.on('redLight', () => { notify('🚦', RED_LIGHT[Math.floor(rng() * RED_LIGHT.length) % RED_LIGHT.length]); audio.play('kaching'); });
+  bus.on('refilled', () => { notify('🍺', REFILLED); audio.play('kaching'); });
+  bus.on('beerEmpty', () => { notify('🍺', BEER_EMPTY); });
+  bus.on('drinkStarted', () => { audio.play('beer'); });
   bus.on('taskStarted', ({ taskId }) => {
     const def = sim.tasks.defs.find((d) => d.id === taskId);
     if (!def || !phone) return;
-    phone.notify(def.from, def.text);
+    notify(def.from, def.text);
     if (def.type === 'chat') phone.showChat(def.from, def.text, def.answers, (i) => sim.answerTask(i));
     else if (def.type === 'like') phone.injectPost(def.postId, CONFIG.tasks.likeWithinPosts);
   });
-  bus.on('taskResolved', ({ taskId, reply }) => {
+  bus.on('taskResolved', ({ taskId, success, reply }) => {
     const def = sim.tasks.defs.find((d) => d.id === taskId);
     phone?.closeChat();
-    if (def) phone?.notify(def.from, reply);
+    if (def) notify(def.from, reply);
+    if (success) audio.play('kaching');
   });
-  bus.on('horn', () => { console.debug('horn'); });
-  bus.on('nearMiss', ({ kind }) => { phone?.notify(...SCARED[kind]); });
+  bus.on('horn', () => { audio.play('horn', 0.8); });
+  bus.on('nearMiss', ({ kind }) => { notify(...SCARED[kind]); });
   car.onImpact((kmh) => {
+    const before = session.damage;
     const levels = session.impact(kmh);
+    const added = session.damage - before;
+    if (added > 0) audio.play('crash', Math.min(1, added / CONFIG.damage.maxPerHit));
     if (levels.length) { hud.showCracks(levels); bus.emit('cracks', { levels }); }
   });
 
@@ -161,8 +172,9 @@ async function startGame(): Promise<void> {
     loop.reset();
     screens.hide();
     phase = 'playing';
+    void audio.resume();
     INTRO.forEach(([from, text], i) => introTimers.push(window.setTimeout(() => {
-      phone?.notify(from, text);
+      notify(from, text);
       // the first task comes 20 s (simulated) after the last intro message
       if (i === INTRO.length - 1) sim.tasks.start(sim.timeSec);
     }, 1000 + i * 4000)));
@@ -171,11 +183,13 @@ async function startGame(): Promise<void> {
   function pause(): void {
     if (phase !== 'playing') return;
     phase = 'paused';
+    audio.suspend();
     screens.showPause(resume);
   }
   function resume(): void {
     if (phase !== 'paused') return;
     phase = 'playing';
+    void audio.resume();
     screens.hide();
     loop.reset();
     last = performance.now();
@@ -191,6 +205,7 @@ async function startGame(): Promise<void> {
 
   function finishRun(): void {
     phase = 'over';
+    audio.suspend();
     phone?.setUp(false);
     const { best, isNew } = highscore.submit(session.score);
     bus.emit('gameOver', { reason: session.over! });
@@ -233,6 +248,10 @@ async function startGame(): Promise<void> {
     const frameDt = Math.min((now - last) / 1000, 1);
     last = now;
 
+    if (input.consumePressed('mute')) {
+      audio.setMuted(!audio.muted);
+      if (phase === 'playing') phone?.notify('Swiep', audio.muted ? 'Geluid uit 🔇 (M)' : 'Geluid aan 🔊 (M)');
+    }
     if (phase === 'playing') {
       if (input.consumePressed('pause')) pause();
       if (input.consumePressed('togglePhone')) phone?.setUp(!phone.isUp());
@@ -254,6 +273,7 @@ async function startGame(): Promise<void> {
       }
       blackoutEl.classList.toggle('on', blackout.update(frameDt, fx.blackoutPerSec, rng));
       phone?.applyEffects(fx);
+      audio.update({ speedKmh: car.speedKmh, slipping: isSlipping(car.speedKmh, drive.handbrake, car.lateralSpeedMs), promille: session.promille, timeSec: sim.timeSec });
       hud.update({ score: session.score, speedKmh: car.speedKmh, damage: session.damage, promille: session.promille, multiplier: session.multiplier, combo: session.comboAt(sim.timeSec) });
     }
 
@@ -287,7 +307,7 @@ async function startGame(): Promise<void> {
   hud.reset();
   screens.showStart(newRun);
   requestAnimationFrame(frame);
-  (window as unknown as { __nogEentjeDan?: unknown }).__nogEentjeDan = debug ? { get session() { return session; }, car, sim } : undefined;
+  (window as unknown as { __nogEentjeDan?: unknown }).__nogEentjeDan = debug ? { get session() { return session; }, car, sim, audio } : undefined;
 }
 
 startGame().catch((err) => {
