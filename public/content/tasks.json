@@ -1,0 +1,434 @@
+[
+  {
+    "id": "chat01",
+    "type": "chat",
+    "from": "Mama 👩",
+    "text": "Ben je al thuis? Je rijdt toch niet?",
+    "timeLimitSec": 12,
+    "reward": 100,
+    "answers": [
+      "Nee joh, ik lig al in bed 😇",
+      "Ja, met 130 op de ring",
+      "Wie is dit?"
+    ],
+    "correct": [
+      0
+    ],
+    "onSuccess": "Brave jongen ❤️ Slaap lekker!",
+    "onFail": "WAT?! Ik bel je vader."
+  },
+  {
+    "id": "chat02",
+    "type": "chat",
+    "from": "Baas Bert 💼",
+    "text": "Kun je morgen om 7:00 beginnen?",
+    "timeLimitSec": 10,
+    "reward": 150,
+    "answers": [
+      "Tuurlijk, baas! 💪",
+      "Morgen? Ik weet niet eens wat vandaag is",
+      "🍺"
+    ],
+    "correct": [
+      0
+    ],
+    "onSuccess": "Top, tot morgen. Niet te laat maken hè 😉",
+    "onFail": "Ik zie je maandag wel even op kantoor."
+  },
+  {
+    "id": "chat03",
+    "type": "chat",
+    "from": "Feestje 🍻",
+    "text": "Neem jij nog ijs mee?",
+    "timeLimitSec": 9,
+    "reward": 80,
+    "answers": [
+      "Komt goed!",
+      "Ijs? In november?",
+      "Ik neem mezelf mee, dat is genoeg"
+    ],
+    "correct": [
+      0,
+      2
+    ],
+    "onSuccess": "Held 🧊",
+    "onFail": "Dan drinken we het bier lauw 🙄"
+  },
+  {
+    "id": "chat04",
+    "type": "chat",
+    "from": "Lisa 💕",
+    "text": "Hé, waarom heb je mijn verhaal niet bekeken?",
+    "timeLimitSec": 10,
+    "reward": 120,
+    "answers": [
+      "Ik zat te rijden 🚗",
+      "Welk verhaal?",
+      "Ik heb hem tien keer bekeken 😍"
+    ],
+    "correct": [
+      2
+    ],
+    "onSuccess": "Aww 🥰 Jij bent lief",
+    "onFail": "Oké. Laat maar. 🙂"
+  },
+  {
+    "id": "chat05",
+    "type": "chat",
+    "from": "Opa Gerrit 👴",
+    "text": "Hoe zet ik dat ding op stil?",
+    "timeLimitSec": 15,
+    "reward": 60,
+    "answers": [
+      "Knopje aan de zijkant, opa",
+      "Gooi hem in de sloot",
+      "Gewoon harder praten"
+    ],
+    "correct": [
+      0
+    ],
+    "onSuccess": "Gelukt! Nu hoor ik niks meer. Ook jou niet.",
+    "onFail": "Ik hoor je niet, de telefoon piept zo."
+  },
+  {
+    "id": "chat06",
+    "type": "chat",
+    "from": "Groepsapp 'Vrijdag' 🎉",
+    "text": "Wie rijdt er vanavond? 🚗",
+    "timeLimitSec": 8,
+    "reward": 200,
+    "answers": [
+      "Ik! Ik heb maar 4 biertjes op",
+      "Ik pak de taxi",
+      "Niemand, we lopen"
+    ],
+    "correct": [
+      1,
+      2
+    ],
+    "onSuccess": "Verstandig. Saai, maar verstandig 🚕",
+    "onFail": "Nee hè, niet weer jij achter het stuur 🤦"
+  },
+  {
+    "id": "chat07",
+    "type": "chat",
+    "from": "Huisgenoot Henk 🧦",
+    "text": "Heb jij mijn oplader gepakt?",
+    "timeLimitSec": 12,
+    "reward": 70,
+    "answers": [
+      "Nee",
+      "Misschien",
+      "Hij ligt in jouw kamer, onder de pizzadoos"
+    ],
+    "correct": [
+      2
+    ],
+    "onSuccess": "Gevonden! Naast drie andere pizzadozen.",
+    "onFail": "Dan pak ik de jouwe 😈"
+  },
+  {
+    "id": "chat08",
+    "type": "chat",
+    "from": "Rijschool Recht Door Zee 🚦",
+    "text": "Uw herexamen staat gepland. Komt u?",
+    "timeLimitSec": 11,
+    "reward": 90,
+    "answers": [
+      "Uiteraard 🙏",
+      "Ik rijd al prima, dank u",
+      "Wat is een herexamen?"
+    ],
+    "correct": [
+      0
+    ],
+    "onSuccess": "Fijn. Neem uw bril mee. En uw verstand.",
+    "onFail": "Wij noteren: 'zeer zelfverzekerd'. Dat is geen compliment."
+  },
+  {
+    "id": "chat09",
+    "type": "chat",
+    "from": "Tante Toos 🍰",
+    "text": "Kom je zondag taart eten?",
+    "timeLimitSec": 13,
+    "reward": 50,
+    "answers": [
+      "Graag!",
+      "Zit vol, sorry",
+      "Alleen als er slagroom is"
+    ],
+    "correct": [
+      0,
+      2
+    ],
+    "onSuccess": "Ik bak er twee 🎂",
+    "onFail": "Dan eet ome Jan jouw stuk op."
+  },
+  {
+    "id": "chat10",
+    "type": "chat",
+    "from": "Buurman Bert 🌳",
+    "text": "Staat jouw auto weer op mijn oprit?",
+    "timeLimitSec": 10,
+    "reward": 110,
+    "answers": [
+      "Nee, ik rijd er nu in",
+      "Welke oprit?",
+      "Sorry buurman, ik zet hem zo weg"
+    ],
+    "correct": [
+      2
+    ],
+    "onSuccess": "Dank je. De heg vergeeft je.",
+    "onFail": "Ik bel de wijkagent. Weer."
+  },
+  {
+    "id": "chat11",
+    "type": "chat",
+    "from": "Mama 👩",
+    "text": "Heb je wel gegeten?",
+    "timeLimitSec": 9,
+    "reward": 80,
+    "answers": [
+      "Een frikandel telt als groente toch?",
+      "Ja, een hele maaltijd 🥦",
+      "Bier is vloeibaar brood"
+    ],
+    "correct": [
+      1
+    ],
+    "onSuccess": "Goed zo! Ik ben trots op je 🥹",
+    "onFail": "Ik maak je zondag een pan andijvie, of je wilt of niet."
+  },
+  {
+    "id": "chat12",
+    "type": "chat",
+    "from": "Koen 🎤",
+    "text": "Karaoke vanavond? Ik heb de microfoon al",
+    "timeLimitSec": 12,
+    "reward": 100,
+    "answers": [
+      "Altijd! 🎶",
+      "Mijn stem heeft ontslag genomen",
+      "Alleen als jij niet zingt"
+    ],
+    "correct": [
+      0,
+      2
+    ],
+    "onSuccess": "LET'S GOOO 🎤🔥",
+    "onFail": "Dan zing ik jouw nummer wel."
+  },
+  {
+    "id": "chat13",
+    "type": "chat",
+    "from": "Verzekering Voorzichtig 📋",
+    "text": "Heeft u de afgelopen 5 minuten iets geraakt?",
+    "timeLimitSec": 10,
+    "reward": 150,
+    "answers": [
+      "Nee hoor",
+      "Definieer 'iets'",
+      "Alleen een paaltje, telt dat?"
+    ],
+    "correct": [
+      0
+    ],
+    "onSuccess": "Mooi. Dan blijft uw premie 'slechts' hoog.",
+    "onFail": "Wij noteren: 'gaat iets raken'."
+  },
+  {
+    "id": "chat14",
+    "type": "chat",
+    "from": "Lisa 💕",
+    "text": "Wat vind je van mijn nieuwe kapsel? 💇‍♀️",
+    "timeLimitSec": 8,
+    "reward": 130,
+    "answers": [
+      "Mooi!",
+      "Ging je naar de kapper?",
+      "Je had al een kapsel?"
+    ],
+    "correct": [
+      0
+    ],
+    "onSuccess": "Jij weet het altijd te zeggen 😘",
+    "onFail": "Fijn. Echt. Heel fijn. 🙂"
+  },
+  {
+    "id": "chat15",
+    "type": "chat",
+    "from": "Groepsapp 'Vrijdag' 🎉",
+    "text": "Stemmen: friet of pizza?",
+    "timeLimitSec": 14,
+    "reward": 60,
+    "answers": [
+      "Friet 🍟",
+      "Pizza 🍕",
+      "Allebei, ik ben niet moeilijk"
+    ],
+    "correct": [
+      0,
+      1,
+      2
+    ],
+    "onSuccess": "Gestemd! Het wordt toch weer kapsalon.",
+    "onFail": "Te laat. Er is al besteld. Zonder jou."
+  },
+  {
+    "id": "like01",
+    "type": "like",
+    "from": "Fit Fleur 💪",
+    "text": "Like mijn nieuwe post even!! 🏋️‍♀️",
+    "timeLimitSec": 25,
+    "reward": 60,
+    "postId": "p07",
+    "onSuccess": "Danku!! Frikandel smaakt nu nog beter 😋",
+    "onFail": "Oké dan niet. Ik zie het heus wel."
+  },
+  {
+    "id": "like02",
+    "type": "like",
+    "from": "Oma Truus 👵",
+    "text": "Heb je mijn appeltaart al gezien op de Swiep?",
+    "timeLimitSec": 30,
+    "reward": 100,
+    "postId": "p02",
+    "onSuccess": "Je bent mijn favoriete kleinkind 🥧"
+  },
+  {
+    "id": "like03",
+    "type": "like",
+    "from": "DJ Dirk 🎧",
+    "text": "Yo, like ff mijn set van gisteren 🔊",
+    "timeLimitSec": 20,
+    "reward": 70,
+    "postId": "p05",
+    "onFail": "Bro. Ik dacht dat we vrienden waren."
+  },
+  {
+    "id": "like04",
+    "type": "like",
+    "from": "Sanne 🌈",
+    "text": "Mijn regenboog-post doet het slecht, help!",
+    "timeLimitSec": 25,
+    "reward": 80,
+    "postId": "p10",
+    "onSuccess": "Ahh lief! Nu ben ik viraal (12 likes) 🌈"
+  },
+  {
+    "id": "like05",
+    "type": "like",
+    "from": "Gerrit 🔥",
+    "text": "Kijk mijn BBQ-foto! Like dan ff",
+    "timeLimitSec": 20,
+    "reward": 50,
+    "postId": "p13"
+  },
+  {
+    "id": "like06",
+    "type": "like",
+    "from": "Nienke 💅",
+    "text": "Like mijn nagels, ik kan zelf niet typen ermee",
+    "timeLimitSec": 30,
+    "reward": 90,
+    "postId": "p14",
+    "onSuccess": "Typ.. dnk.. je 💅",
+    "onFail": "Hmpf. Dan maar zelf liken met mijn neus."
+  },
+  {
+    "id": "like07",
+    "type": "like",
+    "from": "Ruud 🅿️",
+    "text": "Like even hoe netjes ik heb geparkeerd!",
+    "timeLimitSec": 22,
+    "reward": 60,
+    "postId": "p61"
+  },
+  {
+    "id": "dest01",
+    "type": "destination",
+    "from": "Feestje 🍻",
+    "text": "Waar blijf je nou?! Kom naar het feestje!",
+    "timeLimitSec": 90,
+    "reward": 400,
+    "target": "feestje",
+    "onSuccess": "EINDELIJK! 🎉 Pak een biertje.",
+    "onFail": "Laat maar, het feest is al voorbij 😒"
+  },
+  {
+    "id": "dest02",
+    "type": "destination",
+    "from": "DJ Dirk 🎧",
+    "text": "Mijn kabels liggen nog in jouw auto, breng je ze naar het feestje?",
+    "timeLimitSec": 80,
+    "reward": 350,
+    "target": "feestje",
+    "onSuccess": "Je redt de avond 🔊",
+    "onFail": "Dan maar a capella 🎤"
+  },
+  {
+    "id": "dest03",
+    "type": "destination",
+    "from": "Kevin 🍟",
+    "text": "Ik sta bij de snackbar maar mijn pinpas doet het niet. Help?",
+    "timeLimitSec": 70,
+    "reward": 300,
+    "target": "snackbar",
+    "onSuccess": "Je bent een held. Ik trakteer op een kroket.",
+    "onFail": "Ik sta hier nu al een uur. Met een lege maag."
+  },
+  {
+    "id": "dest04",
+    "type": "destination",
+    "from": "Snackbar De Dikke Duif 🍔",
+    "text": "Uw bestelling is klaar! Ophalen binnen de tijd = gratis saus.",
+    "timeLimitSec": 60,
+    "reward": 320,
+    "target": "snackbar",
+    "onSuccess": "Saus is van ons. Smakelijk!",
+    "onFail": "Uw friet is koud. Net als ons hart."
+  },
+  {
+    "id": "dest05",
+    "type": "destination",
+    "from": "Huisgenoot Henk 🧦",
+    "text": "Het wc-papier is op. Ga je even langs de supermarkt?",
+    "timeLimitSec": 100,
+    "reward": 380,
+    "target": "supermarkt",
+    "onSuccess": "Jij bent een redder in nood 🧻",
+    "onFail": "Ik gebruik nu jouw handdoek."
+  },
+  {
+    "id": "dest06",
+    "type": "destination",
+    "from": "Mama 👩",
+    "text": "Haal je nog even melk bij de supermarkt?",
+    "timeLimitSec": 90,
+    "reward": 300,
+    "target": "supermarkt",
+    "onSuccess": "Lief van je! Was je wel nuchter? 😇"
+  },
+  {
+    "id": "dest07",
+    "type": "destination",
+    "from": "Mama 👩",
+    "text": "Kom je even langs thuis? Ik heb soep gemaakt 🍲",
+    "timeLimitSec": 120,
+    "reward": 450,
+    "target": "huis",
+    "onSuccess": "Daar is mijn lieverd! Je ruikt wel een beetje naar bier…",
+    "onFail": "De soep is koud. Je vader heeft hem opgegeten."
+  },
+  {
+    "id": "dest08",
+    "type": "destination",
+    "from": "Huisgenoot Henk 🧦",
+    "text": "De sleutel ligt binnen en ik sta buiten. Kom je naar huis?",
+    "timeLimitSec": 110,
+    "reward": 500,
+    "target": "huis",
+    "onSuccess": "Eindelijk! Het regent al een uur 🌧️"
+  }
+]

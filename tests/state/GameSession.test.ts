@@ -37,3 +37,23 @@ it('near miss costs 25 and never goes below 0', () => {
 it('near miss after game over changes nothing', () => {
   const g = new GameSession(); g.impact(100); g.impact(100); g.nearMiss('oma'); expect(g.stats.scared.oma).toBe(0);
 });
+it('drinking uses the stock', () => {
+  const g = new GameSession(); for (let i = 0; i < 6; i++) { expect(g.startDrink()).toBe(true); g.tick(1.5, snelweg); }
+  expect(g.startDrink()).toBe(false); expect(g.beersLeft).toBe(0);
+});
+it('drinking while already drinking does not use a beer', () => {
+  const g = new GameSession(); expect(g.startDrink()).toBe(true); expect(g.startDrink()).toBe(false); expect(g.beersLeft).toBe(5);
+});
+it('refills the sixpack', () => {
+  const g = new GameSession(); g.startDrink(); g.tick(1.5, snelweg);
+  expect(g.refill(2.1, true, 2)).toBe(true); expect(g.beersLeft).toBe(6);
+});
+it('red light and task rewards use bier × zone, no combo', () => {
+  const g = new GameSession(); g.tick(0.1, snelweg); expect(g.redLight()).toBe(38); expect(g.taskReward(300)).toBe(450);
+  expect(g.stats.redLights).toBe(1); expect(g.stats.tasksCompleted).toBe(1); expect(g.score).toBe(488);
+});
+it('remembers liked posts', () => { const g = new GameSession(); g.like('p07', 1); expect(g.hasLiked('p07')).toBe(true); expect(g.hasLiked('p08')).toBe(false); });
+it('after game over rewards are 0', () => {
+  const g = new GameSession(); g.impact(100); g.impact(100);
+  expect(g.redLight()).toBe(0); expect(g.taskReward(300)).toBe(0); expect(g.refill(3, true, 0)).toBe(false); expect(g.stats.redLights).toBe(0);
+});

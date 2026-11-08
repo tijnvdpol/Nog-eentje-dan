@@ -3,6 +3,7 @@ export type ScaredCounts = { jogger: number; student: number; oma: number };
 export class RunStats {
   phoneUpSec = 0; beers = 0; likes = 0; distanceM = 0; topSpeedKmh = 0;
   scared: ScaredCounts = { jogger: 0, student: 0, oma: 0 };
+  tasksCompleted = 0; redLights = 0;
   update(dt: number, s: { speedKmh: number; phoneUp: boolean }): void {
     if (s.phoneUp) this.phoneUpSec += dt;
     this.distanceM += (Math.abs(s.speedKmh) / 3.6) * dt;
@@ -33,6 +34,7 @@ export function formatEndLines(s: RunStats): string[] {
     `Je keek ${Math.round(s.phoneUpSec)} seconden niet naar de weg.`,
     `${s.beers} ${s.beers === 1 ? 'biertje' : 'biertjes'}, ${s.likes} ${s.likes === 1 ? 'like' : 'likes'}.`,
     `Je reed ${km} km, met een topsnelheid van ${Math.round(s.topSpeedKmh)} km/u.`,
+    `${s.tasksCompleted} ${s.tasksCompleted === 1 ? 'opdracht' : 'opdrachten'} voltooid, ${s.redLights} keer door rood.`,
     scareLine(s.scared),
   ];
 }
