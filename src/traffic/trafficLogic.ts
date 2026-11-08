@@ -1,14 +1,16 @@
 import { CONFIG } from '../config';
 import type { RoadGraph } from '../world/roadGraph';
+import { CAR_LEN } from './lanes';
 
 export interface TrafficCar {
   id: number; edgeId: string; dir: 1 | -1; lane: number; s: number; speed: number;
   /** Where the car goes after this edge; chosen ahead of time so the lookahead can follow the route. */
   next?: { edgeId: string; dir: 1 | -1; lane: number };
+  /** Lane change in progress: the lane the car comes from and how far along the change is (0..1). */
+  laneFrom?: number; laneT?: number;
 }
 export interface PlayerObstacle { x: number; z: number }
 
-const CAR_LEN = 4.5;
 const ACCEL = 3;
 const BRAKE = 6;
 const EMERGENCY_BRAKE = 12;
