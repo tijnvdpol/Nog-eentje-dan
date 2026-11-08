@@ -117,3 +117,31 @@ it('avatar ending in an image extension renders an <img>, anything else renders 
     }
   }
 });
+
+it('chat buttons only work with the phone up, and only once', () => {
+  const got: number[] = []; phone.showChat('Mama', 'Waar ben je?', ['a', 'b', 'c'], (i) => got.push(i));
+  const btns = root.querySelectorAll<HTMLButtonElement>('.phone__chat button');
+  expect(btns).toHaveLength(3); expect(root.querySelector('.phone__chat')?.textContent).toContain('Waar ben je?');
+  phone.setUp(false); btns[0].click(); expect(got).toEqual([]);
+  phone.setUp(true); btns[1].click(); btns[2].click(); expect(got).toEqual([1]);
+  expect(Array.from(btns).every((b) => b.disabled)).toBe(true);
+});
+it('closeChat removes the chat screen', () => {
+  phone.showChat('Mama', 'Hoi', ['a', 'b', 'c'], () => {}); phone.closeChat();
+  expect(root.querySelector('.phone__chat')).toBeNull();
+});
+it('timer bar reflects the fraction and hides on null', () => {
+  phone.setTaskTimer(0.25); const t = root.querySelector('.phone__timer') as HTMLElement;
+  expect(t.style.width).toBe('25%'); expect(t.hidden).toBe(false);
+  phone.setTaskTimer(null); expect((root.querySelector('.phone__timer') as HTMLElement).hidden).toBe(true);
+});
+it('injectPost renders the post within the next 10', () => {
+  for (let k = 0; k < 20; k++) {
+    document.body.innerHTML = '<div id="phone"></div>'; root = document.getElementById('phone')!;
+    phone = new Phone(root, posts, bus, mulberry32(k));
+    phone.injectPost('p7', 10);
+    const ids = articles().map((a) => a.dataset.postId);
+    const at = ids.indexOf('p7');
+    expect(at).toBeGreaterThanOrEqual(1); expect(at).toBeLessThanOrEqual(10);
+  }
+});

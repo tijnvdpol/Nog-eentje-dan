@@ -24,8 +24,11 @@ export class Phone {
   private byId = new Map<string, Post>();
   private liked = new Set<string>();
   private timers = new Set<number>();
+  private frame: HTMLElement;
+  private timer: HTMLElement;
+  private chat: HTMLElement | null = null;
 
-  constructor(private root: HTMLElement, posts: Post[], private bus: EventBus<GameEvents>, rng: () => number) {
+  constructor(private root: HTMLElement, posts: Post[], private bus: EventBus<GameEvents>, private rng: () => number) {
     for (const p of posts) this.byId.set(p.id, p);
     this.shuffler = new FeedShuffler(posts.map((p) => p.id), CONFIG.feed.minGapBeforeRepeat, rng);
 
@@ -36,6 +39,7 @@ export class Phone {
     root.innerHTML = `
       <div class="phone__frame">
         <header class="phone__header"><span class="phone__logo">Swiep</span></header>
+        <div class="phone__timerbar"><div class="phone__timer" hidden></div></div>
         <div class="phone__stories"></div>
         <div class="phone__feed"></div>
       </div>
@@ -48,6 +52,8 @@ export class Phone {
       stories.appendChild(s);
     }
     this.feed = root.querySelector('.phone__feed') as HTMLElement;
+    this.frame = root.querySelector('.phone__frame') as HTMLElement;
+    this.timer = root.querySelector('.phone__timer') as HTMLElement;
     this.feed.addEventListener('wheel', this.onWheel, { passive: false });
     this.feed.addEventListener('scroll', this.onScroll);
     this.feed.addEventListener('dblclick', this.onDblClick);
@@ -74,6 +80,56 @@ export class Phone {
     holder.appendChild(b);
     const t = window.setTimeout(() => { b.remove(); this.timers.delete(t); }, BANNER_MS);
     this.timers.add(t);
+  }
+
+  /**
+   * Chat task (spec fase 2 §3.2): a chat screen over the feed with three answer buttons. Only a click with the
+   * phone up counts, and only the first one; after it every button is disabled.
+   */
+  showChat(from: string, text: string, answers: string[], onAnswer: (index: number) => void): void {
+    this.closeChat();
+    const chat = document.createElement('div');
+    chat.className = 'phone__chat';
+    const head = document.createElement('div'); head.className = 'phone__chathead'; head.textContent = from;
+    const bubble = document.createElement('p'); bubble.className = 'phone__bubble'; bubble.textContent = text;
+    const list = document.createElement('div'); list.className = 'phone__answers';
+    const buttons = answers.map((label, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = label;
+      b.addEventListener('click', () => {
+        if (!this.up || b.disabled) return;
+        for (const x of buttons) x.disabled = true;
+        b.classList.add('phone__answer--picked');
+        onAnswer(i);
+      });
+      return b;
+    });
+    list.append(...buttons);
+    chat.append(head, bubble, list);
+    this.frame.appendChild(chat);
+    this.chat = chat;
+  }
+
+  closeChat(): void { this.chat?.remove(); this.chat = null; }
+
+  /** Time left on the active task as a bar under the header (0..1), or null to hide it. */
+  setTaskTimer(fraction: number | null): void {
+    this.timer.hidden = fraction === null;
+    if (fraction !== null) this.timer.style.width = `${Math.round(Math.max(0, Math.min(1, fraction)) * 1000) / 10}%`;
+  }
+
+  /** Like task: put this post somewhere in the next `withinPosts` posts below the first visible one. */
+  injectPost(postId: string, withinPosts: number): void {
+    const p = this.byId.get(postId);
+    if (!p) return;
+    let posts = Array.from(this.feed.querySelectorAll<HTMLElement>('article.post'));
+    const first = Math.max(0, this.firstVisible(posts));
+    while (posts.length - first <= withinPosts) {
+      this.appendBatch();
+      posts = Array.from(this.feed.querySelectorAll<HTMLElement>('article.post'));
+    }
+    const k = 1 + (Math.floor(this.rng() * withinPosts) % withinPosts);
+    posts[first + k].before(this.renderPost(p));
   }
 
   applyEffects(fx: DrunkEffects): void {
@@ -122,13 +178,20 @@ export class Phone {
   private pruneAbove(): void {
     const posts = Array.from(this.feed.querySelectorAll<HTMLElement>('article.post'));
     if (posts.length <= KEEP_ABOVE) return;
-    const top = this.feed.scrollTop, base = posts[0].offsetTop;
-    const firstVisible = posts.findIndex((a) => a.offsetTop - base + a.offsetHeight > top);
+    const top = this.feed.scrollTop;
+    const firstVisible = this.firstVisible(posts);
     const excess = (firstVisible === -1 ? posts.length : firstVisible) - KEEP_ABOVE;
     if (excess <= 0) return;
-    const removedPx = posts[excess].offsetTop - base;
+    const removedPx = posts[excess].offsetTop - posts[0].offsetTop;
     for (let i = 0; i < excess; i++) posts[i].remove();
     this.feed.scrollTop = top - removedPx;
+  }
+
+  /** Index of the first post that is (partly) visible, or −1. */
+  private firstVisible(posts: HTMLElement[]): number {
+    if (!posts.length) return -1;
+    const top = this.feed.scrollTop, base = posts[0].offsetTop;
+    return posts.findIndex((a) => a.offsetTop - base + a.offsetHeight > top);
   }
 
   private appendBatch(): void {

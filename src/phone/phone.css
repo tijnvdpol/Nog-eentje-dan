@@ -25,3 +25,15 @@
 .phone__banners { position: absolute; top: -10px; left: 50%; transform: translate(-50%, -100%); width: 280px; display: flex; flex-direction: column; gap: 6px; }
 .phone__banner { background: #000d; color: #fff; padding: 8px 12px; border-radius: 12px; font: 13px system-ui, sans-serif; animation: banner-in .25s ease-out; }
 @keyframes banner-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+/* fase 2: task timer and chat */
+.phone__frame { position: relative; }
+.phone__timerbar { height: 5px; background: #222; flex: none; }
+.phone__timer { height: 100%; background: linear-gradient(90deg, #ff3d3d, #ffd23d); transition: width .1s linear; }
+.phone__chat { position: absolute; inset: 52px 0 0; z-index: 2; display: flex; flex-direction: column; gap: 12px; padding: 14px; background: #0f1116f2; animation: banner-in .2s ease-out; }
+.phone__chathead { font-weight: 800; font-size: 16px; padding-bottom: 8px; border-bottom: 1px solid #ffffff22; }
+.phone__bubble { align-self: flex-start; max-width: 85%; margin: 0; padding: 10px 12px; background: #2a2d36; border-radius: 4px 14px 14px 14px; font-size: 15px; line-height: 1.35; }
+.phone__answers { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+.phone__answers button { padding: 10px 12px; border: 0; border-radius: 14px; background: #ff3d81; color: #fff; font: 600 14px system-ui, sans-serif; text-align: left; cursor: pointer; }
+.phone__answers button:disabled { opacity: .45; cursor: default; }
+.phone__answers button.phone__answer--picked { opacity: 1; background: #ff9a3d; color: #111; }
+.phone--down .phone__chat { pointer-events: none; }

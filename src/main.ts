@@ -19,6 +19,7 @@ import { GameSession } from './state/GameSession';
 import { LocalHighscoreStore } from './storage/highscore';
 import { TrafficView } from './traffic/TrafficView';
 import { Hud } from './ui/Hud';
+import { DestinationArrow } from './ui/DestinationArrow';
 import { Screens } from './ui/Screens';
 import { mulberry32 } from './util/rng';
 import { PlayerCar } from './vehicle/PlayerCar';
@@ -32,8 +33,15 @@ const INTRO: [string, string][] = [
   ['Feestje 🍻', 'Bro waar ben je?? Kom je nog 🍺'],
   ['Swiep', 'Tip: druk Q om je telefoon te pakken'],
   ['Swiep', 'Dubbelklik = like. Meer likes = meer punten 🔥'],
-  ['Feestje 🍻', 'Er staat nog een biertje in je cupholder (E) 😉'],
+  ['Feestje 🍻', 'Er staat nog een sixpack in je cupholder (E) 😉'],
 ];
+
+const RED_LIGHT = [
+  'Rood is ook maar een kleur 🔴', 'Stoplicht? Nooit van gehoord 😎', 'Groen, oranje, rood… allemaal mooi 🌈',
+  'Wie remt, verliest 🏁', 'Dat was rood hè 😳 +punten', 'Regels zijn er om te breken 🚦',
+];
+const BEER_EMPTY = 'Bier op 😱 Haal een nieuwe sixpack bij de supermarkt of het feestje.';
+const REFILLED = 'Sixpack gescoord 🍻';
 
 const SCARED: Record<PedKind, [string, string]> = {
   jogger: ['Jogger Joyce', 'Kijk uit, gek! 🏃‍♀️'],
@@ -58,6 +66,7 @@ async function startGame(): Promise<void> {
   const roads: RoadData = await (await fetch('content/roads.json')).json();
   screens.showLoading(0.66);
   const posts: Post[] = await (await fetch('content/posts.json')).json();
+  const taskDefs: unknown[] = await fetch('content/tasks.json').then((r) => r.json()).catch(() => []);
   screens.showLoading(1);
 
   const graph = RoadGraph.fromData(roads);
@@ -88,12 +97,39 @@ async function startGame(): Promise<void> {
 
   let session = new GameSession();
   let phone: Phone | null = null;
-  const sim = new Simulation({ world, graph, car, trafficView, pedView, rng, bus });
+  const sim = new Simulation({ world, graph, car, trafficView, pedView, rng, bus, taskDefs, postIds: new Set(posts.map((p) => p.id)) });
+  const arrow = new DestinationArrow(document.body);
+  const cupCount = document.createElement('span');
+  cupCount.className = 'cup__count';
+  cupBtn.appendChild(cupCount);
+  const refillPlaces = graph.places.filter((p) => p.id === 'supermarkt' || p.id === 'feestje');
+  const beerPins = refillPlaces.map(() => {
+    const pin = document.createElement('div');
+    pin.className = 'beer-pin'; pin.textContent = '🍺'; pin.hidden = true;
+    document.body.appendChild(pin);
+    return pin;
+  });
+  let lastEmptyNotice = -Infinity;
   let blackout = new BlackoutTimer();
   let phase: Phase = 'menu';
   let introTimers: number[] = [];
 
-  bus.on('like', ({ postId }) => { session.like(postId, sim.timeSec); });
+  bus.on('like', ({ postId }) => { session.like(postId, sim.timeSec); sim.likedPost(postId); });
+  bus.on('redLight', () => { phone?.notify('🚦', RED_LIGHT[Math.floor(rng() * RED_LIGHT.length) % RED_LIGHT.length]); });
+  bus.on('refilled', () => { phone?.notify('🍺', REFILLED); });
+  bus.on('beerEmpty', () => { phone?.notify('🍺', BEER_EMPTY); });
+  bus.on('taskStarted', ({ taskId }) => {
+    const def = sim.tasks.defs.find((d) => d.id === taskId);
+    if (!def || !phone) return;
+    phone.notify(def.from, def.text);
+    if (def.type === 'chat') phone.showChat(def.from, def.text, def.answers, (i) => sim.answerTask(i));
+    else if (def.type === 'like') phone.injectPost(def.postId, CONFIG.tasks.likeWithinPosts);
+  });
+  bus.on('taskResolved', ({ taskId, reply }) => {
+    const def = sim.tasks.defs.find((d) => d.id === taskId);
+    phone?.closeChat();
+    if (def) phone?.notify(def.from, reply);
+  });
   bus.on('horn', () => { console.debug('horn'); });
   bus.on('nearMiss', ({ kind }) => { phone?.notify(...SCARED[kind]); });
   car.onImpact((kmh) => {
@@ -101,12 +137,20 @@ async function startGame(): Promise<void> {
     if (levels.length) { hud.showCracks(levels); bus.emit('cracks', { levels }); }
   });
 
-  function drink(): void { if (phase === 'playing' && session.startDrink()) bus.emit('drinkStarted', {}); }
+  function drink(): void {
+    if (phase !== 'playing') return;
+    if (session.startDrink()) { bus.emit('drinkStarted', {}); return; }
+    if (session.beersLeft === 0 && sim.timeSec - lastEmptyNotice >= CONFIG.beer.emptyNoticeCooldownSec) {
+      lastEmptyNotice = sim.timeSec;
+      bus.emit('beerEmpty', {});
+    }
+  }
   cupBtn.addEventListener('click', drink);
 
   function newRun(): void {
     introTimers.forEach(clearTimeout); introTimers = [];
     session = new GameSession();
+    lastEmptyNotice = -Infinity;
     car.teleport(spawn);
     sim.reset();
     blackout = new BlackoutTimer();
@@ -117,7 +161,11 @@ async function startGame(): Promise<void> {
     loop.reset();
     screens.hide();
     phase = 'playing';
-    INTRO.forEach(([from, text], i) => introTimers.push(window.setTimeout(() => phone?.notify(from, text), 1000 + i * 4000)));
+    INTRO.forEach(([from, text], i) => introTimers.push(window.setTimeout(() => {
+      phone?.notify(from, text);
+      // the first task comes 20 s (simulated) after the last intro message
+      if (i === INTRO.length - 1) sim.tasks.start(sim.timeSec);
+    }, 1000 + i * 4000)));
   }
 
   function pause(): void {
@@ -153,6 +201,30 @@ async function startGame(): Promise<void> {
   }
 
   const projected = new THREE.Vector3();
+
+  /** Task timer, destination arrow, cupholder count and the beer pins above the refill places. */
+  function updateTaskUi(): void {
+    const inRun = phase === 'playing' || phase === 'paused';
+    const active = inRun ? sim.tasks.active : null;
+    phone?.setTaskTimer(active ? active.fraction : null);
+    const def = active?.def;
+    const target = def?.type === 'destination' ? graph.places.find((p) => p.id === def.target) ?? null : null;
+    arrow.update(target, car.state);
+    cupCount.textContent = String(session.beersLeft);
+    cupCount.classList.toggle('cup__count--empty', session.beersLeft === 0);
+    const lowStock = session.beersLeft <= CONFIG.beer.iconAtOrBelow;
+    refillPlaces.forEach((place, i) => {
+      const pin = beerPins[i];
+      const near = Math.hypot(place.x - car.state.x, place.z - car.state.z) <= CONFIG.beer.refillRadiusM;
+      const progress = near ? session.refillProgress : 0;
+      projected.set(place.x, 5, place.z).project(renderer.camera);
+      pin.hidden = !inRun || !(lowStock || progress > 0) || projected.z > 1;
+      if (pin.hidden) return;
+      pin.style.left = `${((projected.x + 1) / 2) * 100}%`;
+      pin.style.top = `${((1 - projected.y) / 2) * 100}%`;
+      pin.style.setProperty('--p', progress.toFixed(3));
+    });
+  }
   let last = performance.now();
   let fpsAcc = 0, fpsFrames = 0;
 
@@ -204,6 +276,7 @@ async function startGame(): Promise<void> {
       cupBtn.style.bottom = 'auto';
       cupBtn.style.transform = 'translate(-50%, -50%)';
     }
+    updateTaskUi();
 
     if (debug) {
       fpsAcc += frameDt; fpsFrames++;

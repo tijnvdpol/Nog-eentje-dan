@@ -18,7 +18,7 @@ export type GameEvents = {
   cracks: { levels: number[] };
   gameOver: { reason: 'wrecked' | 'passedOut' };
   taskStarted: { taskId: string };
-  taskResolved: { taskId: string; success: boolean; points: number };
+  taskResolved: { taskId: string; success: boolean; points: number; reply: string };
   redLight: { points: number };
   nearMiss: { kind: 'jogger' | 'student' | 'oma' };
   beerEmpty: {};
