@@ -60,6 +60,14 @@ export class GameSession {
     this.stats.addScared(kind);
   }
 
+  /** Fine penalty (spec fase 3 §4.3): points are subtracted flat, never below 0. Returns the real deduction. */
+  finePenalty(points: number): number {
+    if (this.over) return 0;
+    const taken = Math.min(this.score, Math.max(0, points));
+    this.score -= taken;
+    return taken;
+  }
+
   /** Opens a beer from the sixpack; false when the run is over, a beer is already open or the stock is empty. */
   startDrink(): boolean {
     if (this.over || this.promilleModel.isDrinking || !this.beerStock.take()) return false;

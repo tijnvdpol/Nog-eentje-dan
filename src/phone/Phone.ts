@@ -86,10 +86,10 @@ export class Phone {
    * Chat task (spec fase 2 §3.2): a chat screen over the feed with three answer buttons. Only a click with the
    * phone up counts, and only the first one; after it every button is disabled.
    */
-  showChat(from: string, text: string, answers: string[], onAnswer: (index: number) => void): void {
+  showChat(from: string, text: string, answers: string[], onAnswer: (index: number) => void, opts: { variant?: 'official' } = {}): void {
     this.closeChat();
     const chat = document.createElement('div');
-    chat.className = 'phone__chat';
+    chat.className = opts.variant === 'official' ? 'phone__chat phone__chat--official' : 'phone__chat';
     const head = document.createElement('div'); head.className = 'phone__chathead'; head.textContent = from;
     const bubble = document.createElement('p'); bubble.className = 'phone__bubble'; bubble.textContent = text;
     const list = document.createElement('div'); list.className = 'phone__answers';

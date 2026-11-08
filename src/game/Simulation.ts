@@ -8,6 +8,7 @@ import type { DriveInput } from '../input/input';
 import { PedestrianManager } from '../pedestrians/pedestrianLogic';
 import type { PedestrianView } from '../pedestrians/PedestrianView';
 import type { GameSession } from '../state/GameSession';
+import { FineSystem, type FineEvent } from '../tasks/fineSystem';
 import { TaskSystem, type TaskEvent } from '../tasks/taskSystem';
 import { TrafficManager } from '../traffic/trafficLogic';
 import type { TrafficView } from '../traffic/TrafficView';
@@ -29,6 +30,7 @@ export class Simulation {
   traffic: TrafficManager;
   readonly peds: PedestrianManager;
   readonly tasks: TaskSystem;
+  readonly fines: FineSystem;
   private redLight: RedLightDetector;
   private cameras: SpeedCameraDetector;
   private session: GameSession | null = null;
@@ -42,6 +44,7 @@ export class Simulation {
     this.traffic = new TrafficManager(d.graph, d.rng);
     this.peds = new PedestrianManager(d.graph, d.rng);
     this.tasks = new TaskSystem(d.taskDefs, d.rng, { postIds: d.postIds, placeIds: new Set(d.graph.places.map((p) => p.id)) });
+    this.fines = new FineSystem(d.rng);
     this.redLight = new RedLightDetector(d.graph);
     this.cameras = new SpeedCameraDetector(d.graph);
     this.filter = new DrunkInputFilter(d.rng);
@@ -67,7 +70,11 @@ export class Simulation {
     if (session.refill(dt, this.nearRefillPlace(), car.speedKmh)) bus.emit('refilled', {});
     if (this.redLight.update(car.state, this.timeSec) && !session.over) bus.emit('redLight', { points: session.redLight() });
     const flash = this.cameras.update({ x: car.state.x, z: car.state.z, heading: car.state.heading, speedMs: car.state.speed });
-    if (flash && !session.over) bus.emit('flashed', flash);
+    if (flash && !session.over) {
+      bus.emit('flashed', flash);
+      this.handleFine(this.fines.flash(flash));
+    }
+    for (const e of this.fines.update(dt)) this.handleFine(e);
     const ctx = { timeSec: this.timeSec, player: car.state, speedKmh: car.speedKmh, places: graph.places, isLiked: (id: string) => session.hasLiked(id) };
     this.handleTasks(this.tasks.update(dt, ctx));
     this.timeSec += dt;
@@ -75,6 +82,20 @@ export class Simulation {
 
   /** The player answered the active chat task. */
   answerTask(index: number): void { this.handleTasks(this.tasks.answer(index)); }
+
+  /** The player answered the open fine (index into `fines.open.answers`). */
+  answerFine(index: number): void {
+    if (!this.session || this.session.over) return;
+    for (const e of this.fines.answer(index)) this.handleFine(e);
+  }
+
+  private handleFine(e: FineEvent): void {
+    const s = this.session!;
+    if (e.type === 'opened' || e.type === 'raised') s.stats.addFlash(e.addedEur);
+    else if (e.type === 'paid') s.stats.addPaid(e.amountEur);
+    else if (e.type === 'refused') { s.finePenalty(e.penalty); s.stats.addSurcharge(CONFIG.fine.surchargeEur); }
+    this.d.bus.emit('fine', e);
+  }
 
   /** A post was liked (after the session counted it). */
   likedPost(postId: string): void { this.handleTasks(this.tasks.liked(postId)); }
@@ -102,6 +123,7 @@ export class Simulation {
     this.tasks.reset();
     this.redLight.reset();
     this.cameras.reset();
+    this.fines.reset();
     this.session = null;
     this.d.pedView.sync([]);
     this.filter = new DrunkInputFilter(this.d.rng);

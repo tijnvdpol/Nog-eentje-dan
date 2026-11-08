@@ -1,3 +1,5 @@
+import type { FineEvent } from '../tasks/fineSystem';
+
 export class EventBus<M extends Record<string, unknown>> {
   private handlers = new Map<keyof M, Set<(p: never) => void>>();
   on<K extends keyof M>(k: K, fn: (p: M[K]) => void): () => void {
@@ -27,4 +29,5 @@ export type GameEvents = {
   refilled: {};
   horn: {};
   flashed: FlashEvent;
+  fine: FineEvent;
 };

@@ -145,3 +145,11 @@ it('injectPost renders the post within the next 10', () => {
     expect(at).toBeGreaterThanOrEqual(1); expect(at).toBeLessThanOrEqual(10);
   }
 });
+it('a new chat replaces the old one; old callbacks are never called (fine over task)', () => {
+  const a: number[] = [], b: number[] = []; phone.setUp(true);
+  phone.showChat('Mama', 'x', ['1', '2', '3'], (i) => a.push(i));
+  phone.showChat('Centraal Boete Bureau', 'y', ['Betalen', 'Bezwaar maken', 'Ik was het niet'], (i) => b.push(i), { variant: 'official' });
+  root.querySelectorAll<HTMLButtonElement>('.phone__chat button')[0].click();
+  expect(a).toEqual([]); expect(b).toEqual([0]); expect(root.querySelector('.phone__chat--official')).not.toBeNull();
+  expect(root.querySelectorAll('.phone__chat')).toHaveLength(1);
+});

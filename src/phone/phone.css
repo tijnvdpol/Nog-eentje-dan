@@ -37,3 +37,6 @@
 .phone__answers button:disabled { opacity: .45; cursor: default; }
 .phone__answers button.phone__answer--picked { opacity: 1; background: #ff9a3d; color: #111; }
 .phone--down .phone__chat { pointer-events: none; }
+.phone__chat--official { font-family: Arial, Helvetica, sans-serif; background: #1a1c20f5; }
+.phone__chat--official .phone__chathead { background: #8a8f98; color: #111; margin: -14px -14px 0; padding: 12px 14px; border-bottom: 0; font-weight: 700; }
+.phone__chat--official .phone__chathead::before { content: '🏛️ '; }

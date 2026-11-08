@@ -22,3 +22,10 @@ it('formats the task line', () => {
   s.tasksCompleted = 1; s.redLights = 1; expect(formatEndLines(s)).toContain('1 opdracht voltooid, 1 keer door rood.');
   s.tasksCompleted = 4; s.redLights = 3; expect(formatEndLines(s)).toContain('4 opdrachten voltooid, 3 keer door rood.');
 });
+it('fine end line', () => {
+  const s = new RunStats(); expect(formatEndLines(s)).toContain('Geen enkele keer geflitst. Saai.');
+  s.addFlash(306); expect(formatEndLines(s)).toContain('1 keer geflitst. €306 aan boetes, waarvan je €0 hebt betaald.');
+  s.addFlash(90); s.addSurcharge(50); s.addPaid(0);
+  expect(formatEndLines(s)).toContain('2 keer geflitst. €446 aan boetes, waarvan je €0 hebt betaald.');
+  s.addPaid(130); expect(formatEndLines(s)).toContain('2 keer geflitst. €446 aan boetes, waarvan je €130 hebt betaald.');
+});

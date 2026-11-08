@@ -48,6 +48,15 @@ const RED_LIGHT = [
   'Rood is ook maar een kleur 🔴', 'Stoplicht? Nooit van gehoord 😎', 'Groen, oranje, rood… allemaal mooi 🌈',
   'Wie remt, verliest 🏁', 'Dat was rood hè 😳 +punten', 'Regels zijn er om te breken 🚦',
 ];
+const FINE_SENDER = 'Centraal Boete Bureau';
+const FINE_THANKS = [
+  'Bedankt voor uw bijdrage aan de staatskas 🙏', 'Betaling ontvangen. Tot de volgende keer! 😇',
+  'Keurig betaald. De minister bedankt u persoonlijk 🎩', 'Uw boete financiert nu een nieuwe flitspaal 📸',
+];
+const FINE_REFUSED = [
+  'Bezwaar afgewezen. Verhoging: €50 😤', 'Aanmaning: wij weten waar u woont 📬',
+  'Niet betaald? Dan wordt het €50 duurder 💸', 'Uw bezwaar is met veel plezier afgewezen 🗑️',
+];
 const BEER_EMPTY = 'Bier op 😱 Haal een nieuwe sixpack bij de supermarkt, het feestje of het tankstation.';
 const REFILLED = 'Sixpack gescoord 🍻';
 
@@ -136,16 +145,40 @@ async function startGame(): Promise<void> {
   bus.on('refilled', () => { notify('🍺', REFILLED); audio.play('kaching'); });
   bus.on('beerEmpty', () => { notify('🍺', BEER_EMPTY); });
   bus.on('drinkStarted', () => { audio.play('beer'); });
+  const pick = <T,>(list: readonly T[]): T => list[Math.floor(rng() * list.length) % list.length];
+  /** The fine screen has priority over the task chat; both live in the same phone chat slot. */
+  function showFineChat(text: string): void {
+    const fine = sim.fines.open;
+    if (!phone || !fine) return;
+    phone.showChat(FINE_SENDER, text, fine.answers, (i) => sim.answerFine(i), { variant: 'official' });
+  }
+  function showActiveTaskChat(): void {
+    const def = sim.tasks.active?.def;
+    if (phone && def?.type === 'chat') phone.showChat(def.from, def.text, def.answers, (i) => sim.answerTask(i));
+  }
+  bus.on('fine', (e) => {
+    if (e.type === 'opened' || e.type === 'raised') {
+      const text = e.type === 'opened'
+        ? `U reed ${e.fine.last.speedKmh} km/u waar ${e.fine.last.limitKmh} km/u geldt. Boete: €${e.fine.amountEur}. Betaal binnen ${CONFIG.fine.timeLimitSec} sec.`
+        : `Nóg een overtreding. Openstaand: €${e.fine.amountEur}.`;
+      notify(FINE_SENDER, text);
+      showFineChat(text);
+      return;
+    }
+    phone?.closeChat();
+    notify(FINE_SENDER, pick(e.type === 'paid' ? FINE_THANKS : FINE_REFUSED));
+    showActiveTaskChat();
+  });
   bus.on('taskStarted', ({ taskId }) => {
     const def = sim.tasks.defs.find((d) => d.id === taskId);
     if (!def || !phone) return;
     notify(def.from, def.text);
-    if (def.type === 'chat') phone.showChat(def.from, def.text, def.answers, (i) => sim.answerTask(i));
+    if (def.type === 'chat' && !sim.fines.open) showActiveTaskChat();
     else if (def.type === 'like') phone.injectPost(def.postId, CONFIG.tasks.likeWithinPosts);
   });
   bus.on('taskResolved', ({ taskId, success, reply }) => {
     const def = sim.tasks.defs.find((d) => d.id === taskId);
-    phone?.closeChat();
+    if (!sim.fines.open) phone?.closeChat();
     if (def) notify(def.from, reply);
     if (success) audio.play('kaching');
   });
@@ -232,7 +265,8 @@ async function startGame(): Promise<void> {
   function updateTaskUi(): void {
     const inRun = phase === 'playing' || phase === 'paused';
     const active = inRun ? sim.tasks.active : null;
-    phone?.setTaskTimer(active ? active.fraction : null);
+    const fine = inRun ? sim.fines.open : null;
+    phone?.setTaskTimer(fine ? fine.fraction : active ? active.fraction : null);
     const def = active?.def;
     const target = def?.type === 'destination' ? graph.places.find((p) => p.id === def.target) ?? null : null;
     arrow.update(target, car.state);

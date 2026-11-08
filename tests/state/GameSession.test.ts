@@ -57,3 +57,9 @@ it('after game over rewards are 0', () => {
   const g = new GameSession(); g.impact(100); g.impact(100);
   expect(g.redLight()).toBe(0); expect(g.taskReward(300)).toBe(0); expect(g.refill(3, true, 0)).toBe(false); expect(g.stats.redLights).toBe(0);
 });
+
+it('fine penalty never takes the score below 0 and does nothing after game over', () => {
+  const g = new GameSession(); g.score = 40; expect(g.finePenalty(100)).toBe(40); expect(g.score).toBe(0);
+  g.score = 100; expect(g.finePenalty(30)).toBe(30); expect(g.score).toBe(70);
+  g.over = 'wrecked'; expect(g.finePenalty(10)).toBe(0); expect(g.score).toBe(70);
+});
