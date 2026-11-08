@@ -11,6 +11,8 @@ export class EventBus<M extends Record<string, unknown>> {
   }
 }
 
+export interface FlashEvent { cameraId: string; speedKmh: number; limitKmh: number; kmhOver: number }
+
 export type GameEvents = {
   like: { postId: string };
   phoneToggled: { up: boolean };
@@ -24,4 +26,5 @@ export type GameEvents = {
   beerEmpty: {};
   refilled: {};
   horn: {};
+  flashed: FlashEvent;
 };

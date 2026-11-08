@@ -73,3 +73,9 @@ it('has the village: 6 dorp edges, 30 km/h, zone city; d1 and d2 are intersectio
   expect(d.every((e) => e.speedLimitKmh === 30 && e.zone === 'city')).toBe(true);
   expect(g.isIntersection('d1')).toBe(true); expect(g.isIntersection('d2')).toBe(true); expect(g.isIntersection('d3')).toBe(false);
 });
+
+it('has 4 speed cameras on existing edges with 0 < s < length', () => {
+  expect(data.speedCameras.map((c) => c.id).sort()).toEqual(['fl_dorp', 'fl_nweg_heen', 'fl_nweg_terug', 'fl_ring']);
+  for (const c of data.speedCameras) { expect(g.edge(c.edgeId)).toBeDefined(); expect(c.s).toBeGreaterThan(0); expect(c.s).toBeLessThan(g.edgeLength(c.edgeId)); }
+  expect(g.speedCameras.length).toBe(4);
+});

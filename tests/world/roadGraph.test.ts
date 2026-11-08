@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { buildRoadData } from '../../scripts/generate-roads';
 import { RoadGraph } from '../../src/world/roadGraph';
 const g = RoadGraph.fromData(buildRoadData());
@@ -39,4 +39,13 @@ it('rejects a signal on an unknown node', () => {
 it('ring nodes are found by kind, not by id', () => {
   expect(g.isRingNode('r0')).toBe(true); expect(g.isRingNode('g3_3')).toBe(false);
   expect(g.isIntersection('r28')).toBe(false); expect(g.isIntersection('g3_3')).toBe(true);
+});
+
+it('skips invalid speed cameras with a warning', () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  const d = buildRoadData();
+  const gg = RoadGraph.fromData({ ...d, speedCameras: [...d.speedCameras, { id: 'x1', edgeId: 'bestaatniet', s: 5, dir: 1 }, { id: 'x2', edgeId: 'nw2', s: 9999, dir: 1 }] });
+  expect(gg.speedCameras.map((c) => c.id).sort()).toEqual(['fl_dorp', 'fl_nweg_heen', 'fl_nweg_terug', 'fl_ring']);
+  expect(warn).toHaveBeenCalledTimes(2);
+  warn.mockRestore();
 });

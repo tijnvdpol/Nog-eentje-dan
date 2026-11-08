@@ -1,5 +1,5 @@
 import type { Zone } from '../config';
-import type { Crossing, Place, RoadDataInput, RoadEdge, RoadKind, RoadNode, SignalSpec } from './types';
+import type { Crossing, Place, RoadDataInput, RoadEdge, RoadKind, RoadNode, SignalSpec, SpeedCamera } from './types';
 
 export type Axis = 'nz' | 'ow';
 
@@ -13,6 +13,8 @@ export class RoadGraph {
   readonly nodes: readonly RoadNode[];
   readonly signals: readonly SignalSpec[];
   readonly crossings: readonly Crossing[];
+  /** Only valid cameras: an unknown edge or an `s` outside (0, length) is skipped with a warning. */
+  readonly speedCameras: readonly SpeedCamera[];
   private signalMap = new Map<string, SignalSpec>();
   private ringNodes = new Set<string>();
 
@@ -37,6 +39,12 @@ export class RoadGraph {
     this.nodes = d.nodes;
     this.signals = d.signals ?? [];
     this.crossings = d.crossings ?? [];
+    this.speedCameras = (d.speedCameras ?? []).filter((c) => {
+      const len = this.lengths.get(c.edgeId);
+      const ok = len !== undefined && c.s > 0 && c.s < len;
+      if (!ok) console.warn(`Speed camera ${c.id} skipped: invalid edge or position`);
+      return ok;
+    });
     for (const sig of this.signals) {
       if (!this.nodeMap.has(sig.nodeId)) throw new Error(`Signal on unknown node ${sig.nodeId}`);
       this.signalMap.set(sig.nodeId, sig);

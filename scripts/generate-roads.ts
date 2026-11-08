@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { Crossing, RoadData, RoadEdge, RoadNode, SignalSpec } from '../src/world/types';
+import type { Crossing, RoadData, RoadEdge, RoadNode, SignalSpec, SpeedCamera } from '../src/world/types';
 
 const GRID = 7, SPACING = 100, RING_N = 32, RING_R = 640;
 /** Signalised intersections (spec fase 2 §5.1), in offset order. */
@@ -70,8 +70,16 @@ export function buildRoadData(): RoadData {
     }
   for (const [edgeId, s] of EXTRA_CROSSINGS) crossing(edgeId, s);
 
+  const len = (id: string) => { const e = edges.find((x) => x.id === id)!; const a = nodes.find((n) => n.id === e.from)!, b = nodes.find((n) => n.id === e.to)!; return Math.hypot(b.x - a.x, b.z - a.z); };
+  const speedCameras: SpeedCamera[] = [
+    { id: 'fl_ring', edgeId: 'ring4', s: round(len('ring4') / 2), dir: 1 },
+    { id: 'fl_nweg_heen', edgeId: 'nw2', s: round(len('nw2') / 2), dir: 1 },
+    { id: 'fl_nweg_terug', edgeId: 'nw5', s: round(len('nw5') / 2), dir: -1 },
+    { id: 'fl_dorp', edgeId: 'dh1', s: 50, dir: 1 },
+  ];
+
   return {
-    nodes, edges, signals, crossings,
+    nodes, edges, signals, crossings, speedCameras,
     places: [
       { id: 'feestje', name: 'Feestje', x: -200, z: -200 },
       { id: 'snackbar', name: 'Snackbar', x: 100, z: 0 },

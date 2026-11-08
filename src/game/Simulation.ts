@@ -13,6 +13,7 @@ import { TrafficManager } from '../traffic/trafficLogic';
 import type { TrafficView } from '../traffic/TrafficView';
 import type { PlayerCar } from '../vehicle/PlayerCar';
 import { RedLightDetector } from '../world/redLightDetector';
+import { SpeedCameraDetector } from '../world/speedCameraDetector';
 import type { RoadGraph } from '../world/roadGraph';
 
 export interface SimulationDeps {
@@ -29,6 +30,7 @@ export class Simulation {
   readonly peds: PedestrianManager;
   readonly tasks: TaskSystem;
   private redLight: RedLightDetector;
+  private cameras: SpeedCameraDetector;
   private session: GameSession | null = null;
   /** Simulated time of this run in seconds; only advances in `step`, so pausing stops it. */
   timeSec = 0;
@@ -41,6 +43,7 @@ export class Simulation {
     this.peds = new PedestrianManager(d.graph, d.rng);
     this.tasks = new TaskSystem(d.taskDefs, d.rng, { postIds: d.postIds, placeIds: new Set(d.graph.places.map((p) => p.id)) });
     this.redLight = new RedLightDetector(d.graph);
+    this.cameras = new SpeedCameraDetector(d.graph);
     this.filter = new DrunkInputFilter(d.rng);
   }
 
@@ -63,6 +66,8 @@ export class Simulation {
 
     if (session.refill(dt, this.nearRefillPlace(), car.speedKmh)) bus.emit('refilled', {});
     if (this.redLight.update(car.state, this.timeSec) && !session.over) bus.emit('redLight', { points: session.redLight() });
+    const flash = this.cameras.update({ x: car.state.x, z: car.state.z, heading: car.state.heading, speedMs: car.state.speed });
+    if (flash && !session.over) bus.emit('flashed', flash);
     const ctx = { timeSec: this.timeSec, player: car.state, speedKmh: car.speedKmh, places: graph.places, isLiked: (id: string) => session.hasLiked(id) };
     this.handleTasks(this.tasks.update(dt, ctx));
     this.timeSec += dt;
@@ -96,6 +101,7 @@ export class Simulation {
     this.peds.reset();
     this.tasks.reset();
     this.redLight.reset();
+    this.cameras.reset();
     this.session = null;
     this.d.pedView.sync([]);
     this.filter = new DrunkInputFilter(this.d.rng);

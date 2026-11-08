@@ -1,11 +1,11 @@
 import { enginePitchHz, lowpassCutoffHz, wobbleCents } from './soundParams';
 
-export type OneShot = 'crash' | 'ping' | 'beer' | 'kaching' | 'horn';
+export type OneShot = 'crash' | 'ping' | 'beer' | 'kaching' | 'horn' | 'flits';
 type LoopName = 'engine' | 'tires';
 type SoundName = LoopName | OneShot;
 
 const MUTE_KEY = 'nog-eentje-dan:muted';
-const SOUND_NAMES: SoundName[] = ['engine', 'tires', 'crash', 'ping', 'beer', 'kaching', 'horn'];
+const SOUND_NAMES: SoundName[] = ['engine', 'tires', 'crash', 'ping', 'beer', 'kaching', 'horn', 'flits'];
 /** Pitch of an engine recording at playbackRate 1 (an engine.mp3 is played faster or slower around this). */
 const ENGINE_FILE_BASE_HZ = 110;
 const WOBBLE_HZ = 0.5;
@@ -214,6 +214,16 @@ const SYNTH: Record<OneShot, (ctx: AudioContext, out: AudioNode, noise: AudioBuf
     const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3500;
     src.connect(hp).connect(envelope(ctx, t, 0.5, 0.45)).connect(out);
     src.start(t); src.stop(t + 0.5);
+  },
+  flits(ctx, out, noise) {
+    const t = ctx.currentTime;
+    const click = ctx.createBufferSource(); click.buffer = noise;
+    click.connect(envelope(ctx, t, 0.5, 0.02)).connect(out);
+    click.start(t); click.stop(t + 0.03);
+    const hiss = ctx.createBufferSource(); hiss.buffer = noise;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2500;
+    hiss.connect(hp).connect(envelope(ctx, t + 0.03, 0.3, 0.08)).connect(out);
+    hiss.start(t + 0.03); hiss.stop(t + 0.12);
   },
   kaching(ctx, out, noise) {
     const t = ctx.currentTime;

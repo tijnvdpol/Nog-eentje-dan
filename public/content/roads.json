@@ -1852,6 +1852,32 @@
       "s": 30
     }
   ],
+  "speedCameras": [
+    {
+      "id": "fl_ring",
+      "edgeId": "ring4",
+      "s": 62.731,
+      "dir": 1
+    },
+    {
+      "id": "fl_nweg_heen",
+      "edgeId": "nw2",
+      "s": 127.475,
+      "dir": 1
+    },
+    {
+      "id": "fl_nweg_terug",
+      "edgeId": "nw5",
+      "s": 126.59,
+      "dir": -1
+    },
+    {
+      "id": "fl_dorp",
+      "edgeId": "dh1",
+      "s": 50,
+      "dir": 1
+    }
+  ],
   "places": [
     {
       "id": "feestje",

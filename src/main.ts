@@ -26,6 +26,8 @@ import { Screens } from './ui/Screens';
 import { mulberry32 } from './util/rng';
 import { PlayerCar } from './vehicle/PlayerCar';
 import { buildCity } from './world/CityBuilder';
+import { buildSpeedCameras } from './world/SpeedCameraView';
+import { Flash } from './ui/Flash';
 import { buildTankstation } from './world/TankstationView';
 import { buildVillage } from './world/VillageBuilder';
 import { generateVillageLayout } from './world/villageLayout';
@@ -83,6 +85,7 @@ async function startGame(): Promise<void> {
   buildCity(renderer.scene, world, graph, generateCityLayout(graph, CONFIG.world.seed));
   buildVillage(renderer.scene, world, graph, generateVillageLayout(graph, CONFIG.world.seed), nwegDecor(graph, mulberry32(CONFIG.world.seed)));
   buildTankstation(renderer.scene, world);
+  buildSpeedCameras(renderer.scene, world, graph);
   const cockpit = new Cockpit(renderer.camera);
   const post = new PostFX(renderer.gl, renderer.scene, renderer.camera);
   const trafficView = new TrafficView(renderer.scene, world);
@@ -128,6 +131,8 @@ async function startGame(): Promise<void> {
 
   bus.on('like', ({ postId }) => { session.like(postId, sim.timeSec); sim.likedPost(postId); });
   bus.on('redLight', () => { notify('🚦', RED_LIGHT[Math.floor(rng() * RED_LIGHT.length) % RED_LIGHT.length]); audio.play('kaching'); });
+  const flash = new Flash(document.body);
+  bus.on('flashed', () => { flash.trigger(); audio.play('flits'); });
   bus.on('refilled', () => { notify('🍺', REFILLED); audio.play('kaching'); });
   bus.on('beerEmpty', () => { notify('🍺', BEER_EMPTY); });
   bus.on('drinkStarted', () => { audio.play('beer'); });
