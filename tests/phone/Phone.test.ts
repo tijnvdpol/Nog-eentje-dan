@@ -97,3 +97,23 @@ it('phone size when up comes from CONFIG.phone.coverFraction', () => {
   expect(upRule).toMatch(/width:[^;]*var\(--phone-cover\b/);
   expect(upRule).not.toMatch(/0\.28|360px/);
 });
+it('avatar ending in an image extension renders an <img>, anything else renders as text', () => {
+  const kinds: [string, boolean][] = [
+    ['avatars/sander.png', true], ['avatars/a.jpg', true], ['avatars/a.svg', true], ['avatars/a.webp', true],
+    ['avatars/A.PNG', true], ['🍺', false], ['png', false], ['😎.gif', false],
+  ];
+  for (const [avatar, isImg] of kinds) {
+    document.body.innerHTML = '<div id="phone"></div>'; root = document.getElementById('phone')!;
+    new Phone(root, posts.map((p) => ({ ...p, avatar })), new EventBus<GameEvents>(), mulberry32(4));
+    const av = root.querySelector('.post__avatar')!;
+    const img = av.querySelector('img') ?? (av.tagName === 'IMG' ? av : null);
+    if (isImg) {
+      expect(img, avatar).not.toBeNull();
+      expect(img!.getAttribute('src')).toBe(`content/${avatar}`);
+      expect(av.textContent).toBe('');
+    } else {
+      expect(img, avatar).toBeNull();
+      expect(av.textContent).toBe(avatar);
+    }
+  }
+});

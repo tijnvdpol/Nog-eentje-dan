@@ -14,6 +14,8 @@ const NEAR_BOTTOM_PX = 600;
 /** Posts kept above the first visible post; older ones are removed from the DOM. */
 const KEEP_ABOVE = 30;
 const BANNER_MS = 4000;
+/** An avatar is an image path when it ends in one of these; otherwise it is text (an emoji). */
+const AVATAR_IMAGE = /\.(png|jpe?g|svg|webp)$/i;
 
 export class Phone {
   private up = false;
@@ -140,7 +142,14 @@ export class Phone {
     if (this.liked.has(p.id)) a.classList.add('post--liked');
 
     const head = document.createElement('div'); head.className = 'post__head';
-    const av = document.createElement('span'); av.className = 'post__avatar'; av.textContent = p.avatar;
+    const av = document.createElement('span'); av.className = 'post__avatar';
+    if (AVATAR_IMAGE.test(p.avatar)) {
+      const img = document.createElement('img');
+      img.src = `content/${p.avatar}`; img.alt = ''; img.draggable = false;
+      av.appendChild(img);
+    } else {
+      av.textContent = p.avatar;
+    }
     const name = document.createElement('span'); name.className = 'post__account'; name.textContent = p.account;
     head.append(av, name);
     if (p.type === 'ad') {
