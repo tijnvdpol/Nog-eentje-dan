@@ -1,0 +1,26 @@
+.phone { position: fixed; z-index: 20; right: 24px; transition: transform .35s ease, bottom .35s ease, width .35s ease, height .35s ease; pointer-events: none; }
+.phone__frame { width: 100%; height: 100%; background: #111; border: 6px solid #222; border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; color: #fff; font-family: system-ui, sans-serif; box-shadow: 0 10px 40px #000a; pointer-events: auto; }
+.phone--down { bottom: -40px; width: 180px; height: 320px; transform: rotate(-4deg); opacity: .9; }
+.phone--up { bottom: 5vh; width: min(calc(100vw * 0.28), 360px); height: calc(100vh * 0.9); max-height: 760px; transform: perspective(900px) rotateY(-8deg) rotateX(3deg); }
+.phone__header { padding: 10px 14px; font-weight: 800; font-size: 20px; letter-spacing: .5px; background: linear-gradient(90deg,#ff3d81,#ff9a3d); }
+.phone__stories { display: flex; gap: 8px; padding: 8px; overflow: hidden; background: #181818; }
+.phone__story { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ff3d81; display: grid; place-items: center; font-size: 20px; }
+.phone__feed { flex: 1; overflow-y: auto; overscroll-behavior: contain; filter: blur(var(--phone-blur, 0px)); scrollbar-width: none; }
+.phone__feed::-webkit-scrollbar { display: none; }
+.phone--down .phone__feed { overflow: hidden; }
+.phone { --phone-sway: 0; }
+.phone--up .phone__frame { animation: phone-sway 3s ease-in-out infinite; }
+@keyframes phone-sway { 0%,100% { transform: translateX(calc(var(--phone-sway) * -8px)) rotate(calc(var(--phone-sway) * -1.5deg)); } 50% { transform: translateX(calc(var(--phone-sway) * 8px)) rotate(calc(var(--phone-sway) * 1.5deg)); } }
+.post { border-bottom: 8px solid #000; user-select: none; }
+.post__head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; font-size: 14px; font-weight: 600; text-shadow: var(--phone-double, 0px) 0 0 #ff2d55aa, calc(var(--phone-double, 0px) * -1) 0 0 #2d9bffaa; }
+.post__avatar { font-size: 20px; }
+.post__ad { margin-left: auto; font-size: 11px; opacity: .7; border: 1px solid #fff6; padding: 1px 6px; border-radius: 8px; }
+.post__mediawrap { position: relative; }
+.post__media { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #222; }
+.post__heart { position: absolute; inset: 0; display: grid; place-items: center; font-size: 96px; opacity: 0; transform: scale(.4); pointer-events: none; }
+.post--liked .post__heart { animation: heart-pop .8s ease-out; }
+@keyframes heart-pop { 0% { opacity: 0; transform: scale(.4); } 25% { opacity: 1; transform: scale(1.15); } 100% { opacity: 0; transform: scale(1); } }
+.post__caption { margin: 0; padding: 8px 10px 14px; font-size: 13px; line-height: 1.35; text-shadow: var(--phone-double, 0px) 0 0 #ff2d5566, calc(var(--phone-double, 0px) * -1) 0 0 #2d9bff66; }
+.phone__banners { position: absolute; top: -10px; left: 50%; transform: translate(-50%, -100%); width: 280px; display: flex; flex-direction: column; gap: 6px; }
+.phone__banner { background: #000d; color: #fff; padding: 8px 12px; border-radius: 12px; font: 13px system-ui, sans-serif; animation: banner-in .25s ease-out; }
+@keyframes banner-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
