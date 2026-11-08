@@ -21,5 +21,8 @@ export const CONFIG = {
           nearMissM: 2, nearMissPenalty: 25, crossingWidthM: 3, crossingFromNodeM: 10,
           speeds: { jogger: 2.5, student: 1.0, oma: 0.6 }, mix: { jogger: 0.4, student: 0.4, oma: 0.2 } },
   tasks: { firstDelaySec: 20, gapMinSec: 45, gapMaxSec: 60, destMinDistM: 150, arriveRadiusM: 15, arriveMaxKmh: 20, likeWithinPosts: 10 },
+  village: { houseSpacingM: 14, gapChance: 0.3, houseW: 8, houseD: 9, frontFromCenterM: 7, wallHMin: 3, wallHMax: 5, roofH: 2.5, nodeClearM: 20, lampEveryM: 40 },
+  nweg: { treeOffsetM: 9, treeEveryM: 15, reflectorOffsetM: 4.5, reflectorEveryM: 50 },
+  tankstation: { forecourt: { cx: 2460, cz: 18, w: 30, d: 20 } },
   audio: { lowpassMaxHz: 20000, lowpassMinHz: 800, wobbleFromPromille: 1.3, wobbleMaxCents: 30, gearBandKmh: 30, maxGear: 4, tiresMinKmh: 20 },
 } as const;

@@ -26,6 +26,9 @@ import { Screens } from './ui/Screens';
 import { mulberry32 } from './util/rng';
 import { PlayerCar } from './vehicle/PlayerCar';
 import { buildCity } from './world/CityBuilder';
+import { buildVillage } from './world/VillageBuilder';
+import { generateVillageLayout } from './world/villageLayout';
+import { nwegDecor } from './world/nwegDecor';
 import { generateCityLayout } from './world/cityLayout';
 import { RoadGraph } from './world/roadGraph';
 import { SignalView } from './world/SignalView';
@@ -77,6 +80,7 @@ async function startGame(): Promise<void> {
 
   const renderer = new Renderer(canvas);
   buildCity(renderer.scene, world, graph, generateCityLayout(graph, CONFIG.world.seed));
+  buildVillage(renderer.scene, world, graph, generateVillageLayout(graph, CONFIG.world.seed), nwegDecor(graph, mulberry32(CONFIG.world.seed)));
   const cockpit = new Cockpit(renderer.camera);
   const post = new PostFX(renderer.gl, renderer.scene, renderer.camera);
   const trafficView = new TrafficView(renderer.scene, world);
