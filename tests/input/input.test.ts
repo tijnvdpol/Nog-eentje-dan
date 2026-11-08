@@ -20,3 +20,7 @@ it('prevents page scroll for Space and arrows', () => {
   input = new Input(window); const e = new KeyboardEvent('keydown', { code: 'Space', cancelable: true });
   window.dispatchEvent(e); expect(e.defaultPrevented).toBe(true);
 });
+it('M is a one-shot', () => {
+  input = new Input(window); key('keydown', 'KeyM');
+  expect(input.consumePressed('mute')).toBe(true); expect(input.consumePressed('mute')).toBe(false);
+});

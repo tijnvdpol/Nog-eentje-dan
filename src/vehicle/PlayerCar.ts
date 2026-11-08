@@ -15,6 +15,8 @@ export class PlayerCar {
   private otherVelocity: (colliderHandle: number) => { x: number; z: number } | null = () => null;
   private cooldown = 0;
   private lastDt = 1 / 60;
+  /** Sideways speed relative to the heading (m/s), e.g. when sliding along a wall. */
+  lateralSpeedMs = 0;
 
   constructor(private world: RAPIER.World, spawn: { x: number; z: number; heading: number }) {
     this.state = { x: spawn.x, z: spawn.z, heading: spawn.heading, speed: 0, steerSmoothed: 0 };
@@ -59,6 +61,7 @@ export class PlayerCar {
     const v = this.body.linvel();
     const fx = Math.sin(this.state.heading), fz = Math.cos(this.state.heading);
     const actual = v.x * fx + v.z * fz;
+    this.lateralSpeedMs = v.x * -fz + v.z * fx;
 
     this.cooldown = Math.max(0, this.cooldown - this.lastDt);
     let started = false;

@@ -1360,6 +1360,169 @@
       "zone": "snelweg"
     }
   ],
+  "signals": [
+    {
+      "nodeId": "g3_1",
+      "offsetSec": 0
+    },
+    {
+      "nodeId": "g3_3",
+      "offsetSec": 4
+    },
+    {
+      "nodeId": "g3_5",
+      "offsetSec": 8
+    },
+    {
+      "nodeId": "g1_3",
+      "offsetSec": 12
+    },
+    {
+      "nodeId": "g5_3",
+      "offsetSec": 16
+    },
+    {
+      "nodeId": "g3_6",
+      "offsetSec": 20
+    }
+  ],
+  "crossings": [
+    {
+      "id": "x_ch2_1_90",
+      "edgeId": "ch2_1",
+      "s": 90
+    },
+    {
+      "id": "x_cv3_0_90",
+      "edgeId": "cv3_0",
+      "s": 90
+    },
+    {
+      "id": "x_ch3_1_10",
+      "edgeId": "ch3_1",
+      "s": 10
+    },
+    {
+      "id": "x_cv3_1_10",
+      "edgeId": "cv3_1",
+      "s": 10
+    },
+    {
+      "id": "x_ch2_3_90",
+      "edgeId": "ch2_3",
+      "s": 90
+    },
+    {
+      "id": "x_cv3_2_90",
+      "edgeId": "cv3_2",
+      "s": 90
+    },
+    {
+      "id": "x_ch3_3_10",
+      "edgeId": "ch3_3",
+      "s": 10
+    },
+    {
+      "id": "x_cv3_3_10",
+      "edgeId": "cv3_3",
+      "s": 10
+    },
+    {
+      "id": "x_ch2_5_90",
+      "edgeId": "ch2_5",
+      "s": 90
+    },
+    {
+      "id": "x_cv3_4_90",
+      "edgeId": "cv3_4",
+      "s": 90
+    },
+    {
+      "id": "x_ch3_5_10",
+      "edgeId": "ch3_5",
+      "s": 10
+    },
+    {
+      "id": "x_cv3_5_10",
+      "edgeId": "cv3_5",
+      "s": 10
+    },
+    {
+      "id": "x_ch0_3_90",
+      "edgeId": "ch0_3",
+      "s": 90
+    },
+    {
+      "id": "x_cv1_2_90",
+      "edgeId": "cv1_2",
+      "s": 90
+    },
+    {
+      "id": "x_ch1_3_10",
+      "edgeId": "ch1_3",
+      "s": 10
+    },
+    {
+      "id": "x_cv1_3_10",
+      "edgeId": "cv1_3",
+      "s": 10
+    },
+    {
+      "id": "x_ch4_3_90",
+      "edgeId": "ch4_3",
+      "s": 90
+    },
+    {
+      "id": "x_cv5_2_90",
+      "edgeId": "cv5_2",
+      "s": 90
+    },
+    {
+      "id": "x_ch5_3_10",
+      "edgeId": "ch5_3",
+      "s": 10
+    },
+    {
+      "id": "x_cv5_3_10",
+      "edgeId": "cv5_3",
+      "s": 10
+    },
+    {
+      "id": "x_ch2_6_90",
+      "edgeId": "ch2_6",
+      "s": 90
+    },
+    {
+      "id": "x_cv3_5_90",
+      "edgeId": "cv3_5",
+      "s": 90
+    },
+    {
+      "id": "x_ch3_6_10",
+      "edgeId": "ch3_6",
+      "s": 10
+    },
+    {
+      "id": "x_cv4_2_70",
+      "edgeId": "cv4_2",
+      "s": 70
+    },
+    {
+      "id": "x_cv4_3_30",
+      "edgeId": "cv4_3",
+      "s": 30
+    },
+    {
+      "id": "x_ch1_5_70",
+      "edgeId": "ch1_5",
+      "s": 70
+    },
+    {
+      "id": "x_cv2_5_30",
+      "edgeId": "cv2_5",
+      "s": 30
+    }
+  ],
   "places": [
     {
       "id": "feestje",
