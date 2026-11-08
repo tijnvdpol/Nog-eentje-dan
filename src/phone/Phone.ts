@@ -29,6 +29,8 @@ export class Phone {
 
     root.classList.remove('phone--up');
     root.classList.add('phone', 'phone--down');
+    // Fraction of the screen width the phone covers when up (see .phone--up in phone.css).
+    root.style.setProperty('--phone-cover', String(CONFIG.phone.coverFraction));
     root.innerHTML = `
       <div class="phone__frame">
         <header class="phone__header"><span class="phone__logo">Swiep</span></header>

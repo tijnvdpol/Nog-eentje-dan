@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
 import { beforeEach, expect, it } from 'vitest';
+import { CONFIG } from '../../src/config';
 import { EventBus, type GameEvents } from '../../src/core/events';
 import { drunkEffects } from '../../src/drunk/effects';
 import { Phone, type Post } from '../../src/phone/Phone';
@@ -87,4 +89,11 @@ it('prunes posts far above the viewport without moving what is on screen', () =>
   } finally {
     for (const [k, d] of saved) Object.defineProperty(proto, k, d);
   }
+});
+it('phone size when up comes from CONFIG.phone.coverFraction', () => {
+  expect(root.style.getPropertyValue('--phone-cover')).toBe(String(CONFIG.phone.coverFraction));
+  const css = readFileSync('src/phone/phone.css', 'utf8');
+  const upRule = css.match(/\.phone--up\s*\{([^}]*)\}/)![1];
+  expect(upRule).toMatch(/width:[^;]*var\(--phone-cover\b/);
+  expect(upRule).not.toMatch(/0\.28|360px/);
 });
