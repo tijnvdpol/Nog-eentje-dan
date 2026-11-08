@@ -20,7 +20,7 @@ it('ships 30 valid tasks: 15 chat, 7 like, 8 destination, within the spec ranges
     }
   };
   range('chat', [50, 200], [8, 15]); range('like', [50, 100], [20, 30]); range('destination', [300, 500], [60, 120]);
-  for (const p of places) expect(ts.defs.filter((d) => d.type === 'destination' && d.target === p.id), p.id).toHaveLength(2);
+  for (const p of places.filter((q) => !['tankstation', 'dorpscafe'].includes(q.id))) expect(ts.defs.filter((d) => d.type === 'destination' && d.target === p.id), p.id).toHaveLength(2);
   expect(new Set(by('like').map((d) => d.type === 'like' && d.postId)).size).toBe(7);
   expect(ts.defs.filter((d) => d.onSuccess && d.onFail).length).toBeGreaterThanOrEqual(15);
 });

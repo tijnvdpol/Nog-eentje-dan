@@ -404,6 +404,81 @@
       "id": "r31",
       "x": 627.703,
       "z": -124.858
+    },
+    {
+      "id": "n0",
+      "x": 700,
+      "z": 0
+    },
+    {
+      "id": "n1",
+      "x": 950,
+      "z": 0
+    },
+    {
+      "id": "n2",
+      "x": 1200,
+      "z": 40
+    },
+    {
+      "id": "n3",
+      "x": 1450,
+      "z": 90
+    },
+    {
+      "id": "n4",
+      "x": 1700,
+      "z": 90
+    },
+    {
+      "id": "n5",
+      "x": 1950,
+      "z": 40
+    },
+    {
+      "id": "n6",
+      "x": 2200,
+      "z": 0
+    },
+    {
+      "id": "n7",
+      "x": 2450,
+      "z": 0
+    },
+    {
+      "id": "d0",
+      "x": 2500,
+      "z": 0
+    },
+    {
+      "id": "d1",
+      "x": 2600,
+      "z": 0
+    },
+    {
+      "id": "d2",
+      "x": 2700,
+      "z": 0
+    },
+    {
+      "id": "d3",
+      "x": 2800,
+      "z": 0
+    },
+    {
+      "id": "d4",
+      "x": 2600,
+      "z": 80
+    },
+    {
+      "id": "d5",
+      "x": 2700,
+      "z": -80
+    },
+    {
+      "id": "d6",
+      "x": 2800,
+      "z": 80
     }
   ],
   "edges": [
@@ -1477,6 +1552,141 @@
       "speedLimitKmh": 80,
       "zone": "snelweg",
       "kind": "oprit"
+    },
+    {
+      "id": "opr3",
+      "from": "n0",
+      "to": "r0",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 80,
+      "zone": "nweg",
+      "kind": "oprit"
+    },
+    {
+      "id": "nw0",
+      "from": "n0",
+      "to": "n1",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 80,
+      "zone": "nweg",
+      "kind": "nweg"
+    },
+    {
+      "id": "nw1",
+      "from": "n1",
+      "to": "n2",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 80,
+      "zone": "nweg",
+      "kind": "nweg"
+    },
+    {
+      "id": "nw2",
+      "from": "n2",
+      "to": "n3",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 80,
+      "zone": "nweg",
+      "kind": "nweg"
+    },
+    {
+      "id": "nw3",
+      "from": "n3",
+      "to": "n4",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 80,
+      "zone": "nweg",
+      "kind": "nweg"
+    },
+    {
+      "id": "nw4",
+      "from": "n4",
+      "to": "n5",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 80,
+      "zone": "nweg",
+      "kind": "nweg"
+    },
+    {
+      "id": "nw5",
+      "from": "n5",
+      "to": "n6",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 80,
+      "zone": "nweg",
+      "kind": "nweg"
+    },
+    {
+      "id": "nw6",
+      "from": "n6",
+      "to": "n7",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 80,
+      "zone": "nweg",
+      "kind": "nweg"
+    },
+    {
+      "id": "nw7",
+      "from": "n7",
+      "to": "d0",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 80,
+      "zone": "nweg",
+      "kind": "nweg"
+    },
+    {
+      "id": "dh0",
+      "from": "d0",
+      "to": "d1",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 30,
+      "zone": "city",
+      "kind": "dorp"
+    },
+    {
+      "id": "dh1",
+      "from": "d1",
+      "to": "d2",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 30,
+      "zone": "city",
+      "kind": "dorp"
+    },
+    {
+      "id": "dh2",
+      "from": "d2",
+      "to": "d3",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 30,
+      "zone": "city",
+      "kind": "dorp"
+    },
+    {
+      "id": "dz0",
+      "from": "d1",
+      "to": "d4",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 30,
+      "zone": "city",
+      "kind": "dorp"
+    },
+    {
+      "id": "dz1",
+      "from": "d2",
+      "to": "d5",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 30,
+      "zone": "city",
+      "kind": "dorp"
+    },
+    {
+      "id": "dz2",
+      "from": "d3",
+      "to": "d6",
+      "lanesPerDir": 1,
+      "speedLimitKmh": 30,
+      "zone": "city",
+      "kind": "dorp"
     }
   ],
   "signals": [
@@ -1666,6 +1876,18 @@
       "name": "Huis",
       "x": 200,
       "z": 200
+    },
+    {
+      "id": "tankstation",
+      "name": "Tankstation",
+      "x": 2460,
+      "z": 12
+    },
+    {
+      "id": "dorpscafe",
+      "name": "Café De Gouden Karper",
+      "x": 2700,
+      "z": 12
     }
   ]
 }

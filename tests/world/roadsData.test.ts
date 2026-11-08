@@ -12,9 +12,10 @@ it('ring is ~4 km', () => {
   const len = g.edgesOfKind('ring').reduce((s, e) => s + g.edgeLength(e.id), 0);
   expect(len).toBeGreaterThan(3800); expect(len).toBeLessThan(4200);
 });
-it('has 3 ramps and all 4 places', () => {
-  expect(g.edgesOfKind('oprit').length).toBe(3);
-  expect(g.places.map((p) => p.id).sort()).toEqual(['feestje', 'huis', 'snackbar', 'supermarkt']);
+it('has 4 opritten and 6 places, each within 15 m of an edge', () => {
+  expect(g.edgesOfKind('oprit').length).toBe(4);
+  expect(g.places.map((p) => p.id).sort()).toEqual(['dorpscafe', 'feestje', 'huis', 'snackbar', 'supermarkt', 'tankstation']);
+  for (const p of g.places) expect(g.nearestEdge(p.x, p.z).distance).toBeLessThanOrEqual(15);
 });
 it('every node is reachable from every other', () => {
   const seen = new Set([data.nodes[0].id]); const q = [data.nodes[0].id];
@@ -46,9 +47,29 @@ it('crossing ids are unique and follow x_<edgeId>_<s>', () => {
 });
 it('no crossing on a ramp', () => { expect(g.crossings.every((c) => g.edge(c.edgeId).zone === 'city')).toBe(true); });
 
-it('every edge has a kind; 84 stad, 32 ring, 3 oprit', () => {
+it('every edge has a kind; 84 stad, 32 ring, 4 oprit', () => {
   expect(g.edges.every((e) => !!e.kind)).toBe(true);
   expect(g.edgesOfKind('stad').length).toBe(84);
   expect(g.edgesOfKind('ring').length).toBe(32);
-  expect(g.edgesOfKind('oprit').length).toBe(3);
+  expect(g.edgesOfKind('oprit').length).toBe(4);
+});
+
+it('has the N-road: opr3 n0→r0, nw0..nw7, 80 km/h, zone nweg, 1.7–1.9 km', () => {
+  const opr3 = g.edges.find((e) => e.id === 'opr3')!;
+  expect([opr3.from, opr3.to, opr3.kind, opr3.zone, opr3.speedLimitKmh]).toEqual(['n0', 'r0', 'oprit', 'nweg', 80]);
+  const nw = g.edgesOfKind('nweg'); expect(nw.length).toBe(8);
+  expect(nw.every((e) => e.speedLimitKmh === 80 && e.zone === 'nweg' && e.lanesPerDir === 1)).toBe(true);
+  const len = nw.reduce((s, e) => s + g.edgeLength(e.id), 0); expect(len).toBeGreaterThan(1700); expect(len).toBeLessThan(1900);
+});
+it('no N-road bend sharper than 12°', () => {
+  const nw = g.edgesOfKind('nweg');
+  for (let i = 0; i < nw.length - 1; i++) {
+    const dir = (e: typeof nw[0]) => { const a = g.node(e.from), b = g.node(e.to); return Math.atan2(b.z - a.z, b.x - a.x); };
+    expect(Math.abs(dir(nw[i + 1]) - dir(nw[i])) * 180 / Math.PI).toBeLessThanOrEqual(12);
+  }
+});
+it('has the village: 6 dorp edges, 30 km/h, zone city; d1 and d2 are intersections', () => {
+  const d = g.edgesOfKind('dorp'); expect(d.length).toBe(6);
+  expect(d.every((e) => e.speedLimitKmh === 30 && e.zone === 'city')).toBe(true);
+  expect(g.isIntersection('d1')).toBe(true); expect(g.isIntersection('d2')).toBe(true); expect(g.isIntersection('d3')).toBe(false);
 });

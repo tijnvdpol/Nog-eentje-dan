@@ -46,6 +46,19 @@ export function buildRoadData(): RoadData {
     edges.push({ id, from: gid(i, j), to: rid(best), lanesPerDir: 1, speedLimitKmh: 80, zone: 'snelweg', kind: 'oprit' });
   }
 
+  // N-road (spec fase 3 §3.2): exit opr3 from ring node r0, then nw0..nw7 to the village.
+  const nweg: [string, number, number][] = [['n0', 700, 0], ['n1', 950, 0], ['n2', 1200, 40], ['n3', 1450, 90], ['n4', 1700, 90], ['n5', 1950, 40], ['n6', 2200, 0], ['n7', 2450, 0]];
+  const village: [string, number, number][] = [['d0', 2500, 0], ['d1', 2600, 0], ['d2', 2700, 0], ['d3', 2800, 0], ['d4', 2600, 80], ['d5', 2700, -80], ['d6', 2800, 80]];
+  for (const [id, x, z] of [...nweg, ...village]) nodes.push({ id, x, z });
+  edges.push({ id: 'opr3', from: 'n0', to: rid(0), lanesPerDir: 1, speedLimitKmh: 80, zone: 'nweg', kind: 'oprit' });
+  const nwNodes = [...nweg.map((n) => n[0]), 'd0'];
+  for (let k = 0; k < nwNodes.length - 1; k++)
+    edges.push({ id: `nw${k}`, from: nwNodes[k], to: nwNodes[k + 1], lanesPerDir: 1, speedLimitKmh: 80, zone: 'nweg', kind: 'nweg' });
+  const dorp = (id: string, from: string, to: string) =>
+    edges.push({ id, from, to, lanesPerDir: 1, speedLimitKmh: 30, zone: 'city', kind: 'dorp' });
+  dorp('dh0', 'd0', 'd1'); dorp('dh1', 'd1', 'd2'); dorp('dh2', 'd2', 'd3');
+  dorp('dz0', 'd1', 'd4'); dorp('dz1', 'd2', 'd5'); dorp('dz2', 'd3', 'd6');
+
   const signals: SignalSpec[] = SIGNAL_NODES.map((nodeId, i) => ({ nodeId, offsetSec: i * SIGNAL_OFFSET_STEP }));
   const crossings: Crossing[] = [];
   const crossing = (edgeId: string, s: number) => crossings.push({ id: `x_${edgeId}_${s}`, edgeId, s });
@@ -64,6 +77,8 @@ export function buildRoadData(): RoadData {
       { id: 'snackbar', name: 'Snackbar', x: 100, z: 0 },
       { id: 'supermarkt', name: 'Supermarkt', x: -100, z: 200 },
       { id: 'huis', name: 'Huis', x: 200, z: 200 },
+      { id: 'tankstation', name: 'Tankstation', x: 2460, z: 12 },
+      { id: 'dorpscafe', name: 'Café De Gouden Karper', x: 2700, z: 12 },
     ],
   };
 }

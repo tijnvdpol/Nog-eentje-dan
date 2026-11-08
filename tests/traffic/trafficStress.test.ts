@@ -55,3 +55,34 @@ it('5 minutes of traffic and pedestrians: no axis conflict, no deadlock, no over
     else { expect(laneChangers.size).toBeGreaterThan(3); expect(mergers.size).toBeGreaterThan(3); }
   }
 }, 60_000);
+
+it('village and N-road: no deadlock, no overlap, dead ends turn cars around', () => {
+  for (const [seed, player] of [[11, { x: 2600, z: 0 }], [12, { x: 1450, z: 90 }]] as const) {
+    const m = new TrafficManager(g, mulberry32(seed));
+    const dt = 1 / 30;
+    const still = new Map<number, number>();
+    const turned = new Set<number>(); const lastDir = new Map<number, string>();
+    let t = 0;
+    for (let step = 0; step < 4500; step++) {
+      m.update(dt, player, t, []); t += dt;
+      const byLane = new Map<string, { id: number; x: number; z: number }[]>();
+      for (const c of m.cars) {
+        const p = lanePose(c, g);
+        if (/^dz[0-2]$/.test(c.edgeId)) { const k = `${c.edgeId}${c.dir}`; const prev = lastDir.get(c.id); if (prev && prev !== k && prev.startsWith(c.edgeId)) turned.add(c.id); lastDir.set(c.id, k); }
+        for (const lane of occupiedLanes(c)) {
+          const k = `${c.edgeId}|${c.dir}|${lane}`;
+          for (const o of byLane.get(k) ?? [])
+            expect(Math.hypot(o.x - p.x, o.z - p.z), `overlap ${o.id}/${c.id} on ${k}`).toBeGreaterThanOrEqual(2);
+          byLane.set(k, [...(byLane.get(k) ?? []), { id: c.id, x: p.x, z: p.z }]);
+        }
+        const s = c.speed < 0.1 ? (still.get(c.id) ?? 0) + dt : 0;
+        still.set(c.id, s);
+        // waiting behind another car or the stationary player is correct behaviour, not a deadlock
+        const blocked = Math.hypot(p.x - player.x, p.z - player.z) < 25
+          || m.cars.some((o) => o !== c && Math.hypot(lanePose(o, g).x - p.x, lanePose(o, g).z - p.z) < 15);
+        if (!blocked) expect(s, `car ${c.id} stuck on ${c.edgeId}`).toBeLessThanOrEqual(60);
+      }
+    }
+    if (player.x === 2600) expect(turned.size).toBeGreaterThan(0);
+  }
+}, 60_000);
