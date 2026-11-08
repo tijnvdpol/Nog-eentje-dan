@@ -56,6 +56,9 @@ export class GameSession {
     return levels;
   }
 
+  /** Debug only (?debug): set the promille directly. */
+  debugSetPromille(v: number): void { this.promilleModel.value = v; }
+
   private checkOver(): void {
     if (this.over) return;
     if (this.damageModel.isWrecked) this.over = 'wrecked';

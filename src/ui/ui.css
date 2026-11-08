@@ -1,0 +1,23 @@
+html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-family: system-ui, sans-serif; color: #fff; }
+#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#blackout { position: fixed; inset: 0; background: #000; opacity: 0; pointer-events: none; z-index: 50; }
+#blackout.on { opacity: 1; }
+#hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+.hud__score { position: absolute; top: 18px; left: 22px; font-size: 38px; font-weight: 800; text-shadow: 0 2px 8px #000; }
+.hud__combo { position: absolute; top: 66px; left: 24px; font-size: 18px; opacity: .9; text-shadow: 0 2px 6px #000; }
+.hud__dash { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 22px; padding: 8px 18px; background: #000a; border-radius: 12px; font-size: 18px; font-variant-numeric: tabular-nums; }
+.hud__dash b { color: #66e0ff; }
+.hud__cracks { position: absolute; inset: 0; }
+.hud__crack { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .85; }
+.hud__fps { position: absolute; top: 8px; right: 12px; font: 12px monospace; background: #0008; padding: 2px 6px; }
+#cupholder { position: fixed; z-index: 15; left: 75%; top: 85%; width: 80px; height: 80px; border-radius: 50%; border: 0; background: transparent; cursor: pointer; }
+.screen { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: #000c; text-align: center; }
+.screen__box { max-width: 640px; padding: 28px 36px; background: #14151c; border: 1px solid #ffffff22; border-radius: 16px; box-shadow: 0 10px 50px #000; }
+.screen h1 { margin: 0 0 6px; font-size: 44px; }
+.screen h2 { margin: 0 0 12px; font-size: 32px; }
+.screen p { margin: 8px 0; line-height: 1.4; }
+.screen button { margin-top: 16px; padding: 12px 28px; font-size: 20px; font-weight: 700; border: 0; border-radius: 10px; background: #ff9a3d; color: #111; cursor: pointer; }
+.screen table { margin: 14px auto 0; text-align: left; font-size: 15px; border-collapse: collapse; }
+.screen td { padding: 3px 12px; }
+.screen td:first-child { color: #66e0ff; font-weight: 700; white-space: nowrap; }
+.screen__new { color: #ffd166; font-weight: 800; font-size: 22px; }

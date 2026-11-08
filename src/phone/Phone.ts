@@ -25,6 +25,7 @@ export class Phone {
     for (const p of posts) this.byId.set(p.id, p);
     this.shuffler = new FeedShuffler(posts.map((p) => p.id), CONFIG.feed.minGapBeforeRepeat, rng);
 
+    root.classList.remove('phone--up');
     root.classList.add('phone', 'phone--down');
     root.innerHTML = `
       <div class="phone__frame">
