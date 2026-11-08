@@ -43,13 +43,14 @@ export class Hud {
     }
   }
 
-  showFps(fps: number): void {
+  showFps(fps: number, calls?: number, triangles?: number): void {
     if (!this.fps) {
       this.fps = document.createElement('div');
       this.fps.className = 'hud__fps';
       this.root.appendChild(this.fps);
     }
-    this.fps.textContent = `${Math.round(fps)} fps`;
+    this.fps.textContent = `${Math.round(fps)} fps`
+      + (calls !== undefined && triangles !== undefined ? ` · ${calls} calls · ${Math.round(triangles / 1000)}k tris` : '');
   }
 
   reset(): void {

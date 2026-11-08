@@ -1,19 +1,14 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
 import { CONFIG } from '../config';
+import { addInstancedChunks } from './instancedChunks';
 import type { NwegDecor } from './nwegDecor';
 import type { RoadGraph } from './roadGraph';
-import type { VillageLayout } from './villageLayout';
+import type { HouseSpec, VillageLayout } from './villageLayout';
 
 const dummy = new THREE.Object3D();
+const CHUNK = CONFIG.world.chunkSizeM;
 const LAMP_RADIUS = 0.15, LAMP_HEIGHT = 6, TRUNK_RADIUS = 0.3;
-
-function instanced(geo: THREE.BufferGeometry, mat: THREE.Material, count: number): THREE.InstancedMesh {
-  const m = new THREE.InstancedMesh(geo, mat, Math.max(count, 1));
-  m.count = count;
-  m.frustumCulled = false;
-  return m;
-}
 
 /** Gable roof: triangle of base 1 and height 1 (across local z), ridge along local x, length 1. */
 function roofGeometry(): THREE.BufferGeometry {
@@ -33,19 +28,17 @@ export function buildVillage(scene: THREE.Scene, world: RAPIER.World, g: RoadGra
   const { houses, church, cafe } = layout;
 
   // Houses + gable roofs (one collider around the whole house, roof included)
-  const walls = instanced(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ roughness: 0.85 }), houses.length);
-  const roofs = instanced(roofGeometry(), new THREE.MeshStandardMaterial({ color: 0x7a3f33, roughness: 0.9 }), houses.length);
-  const col = new THREE.Color();
-  houses.forEach((h, i) => {
+  const houseAt = (part: 'wall' | 'roof') => (h: HouseSpec, m: THREE.Matrix4, c: THREE.Color) => {
     dummy.rotation.set(0, h.yaw, 0);
-    dummy.scale.set(h.w, h.h, h.d); dummy.position.set(h.x, h.h / 2, h.z); dummy.updateMatrix();
-    walls.setMatrixAt(i, dummy.matrix); walls.setColorAt(i, col.setHex(h.color));
-    dummy.scale.set(h.w, h.roofH, h.d); dummy.position.set(h.x, h.h, h.z); dummy.updateMatrix();
-    roofs.setMatrixAt(i, dummy.matrix);
-    const total = h.h + h.roofH;
-    box(world, h.x, total / 2, h.z, h.w / 2, total / 2, h.d / 2, h.yaw);
-  });
-  scene.add(walls, roofs);
+    if (part === 'wall') { dummy.scale.set(h.w, h.h, h.d); dummy.position.set(h.x, h.h / 2, h.z); }
+    else { dummy.scale.set(h.w, h.roofH, h.d); dummy.position.set(h.x, h.h, h.z); }
+    dummy.updateMatrix(); m.copy(dummy.matrix);
+    if (part === 'wall') c.setHex(h.color);
+    return part === 'wall';
+  };
+  addInstancedChunks(scene, new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ roughness: 0.85 }), houses, CHUNK, houseAt('wall'));
+  addInstancedChunks(scene, roofGeometry(), new THREE.MeshStandardMaterial({ color: 0x7a3f33, roughness: 0.9 }), houses, CHUNK, houseAt('roof'));
+  for (const h of houses) { const total = h.h + h.roofH; box(world, h.x, total / 2, h.z, h.w / 2, total / 2, h.d / 2, h.yaw); }
 
   // Church: nave + tower + spire + red beacon (fog:false so it shows through the mist)
   const stone = new THREE.MeshStandardMaterial({ color: 0xb9b2a4, roughness: 0.9 });
@@ -72,38 +65,30 @@ export function buildVillage(scene: THREE.Scene, world: RAPIER.World, g: RoadGra
   box(world, cafe.x, cafe.h / 2, cafe.z, cafe.w / 2, cafe.h / 2, cafe.d / 2);
 
   // Lamps along village streets: every lampEveryM on one side
-  const lamps: [number, number][] = [];
+  const lamps: { x: number; z: number }[] = [];
   for (const e of g.edgesOfKind('dorp')) {
     const a = g.node(e.from), b = g.node(e.to);
     const len = g.edgeLength(e.id);
     const fx = (b.x - a.x) / len, fz = (b.z - a.z) / len;
-    for (let s = CONFIG.village.lampEveryM / 2; s < len; s += CONFIG.village.lampEveryM) lamps.push([a.x + fx * s - fz * 5, a.z + fz * s + fx * 5]);
+    for (let s = CONFIG.village.lampEveryM / 2; s < len; s += CONFIG.village.lampEveryM) lamps.push({ x: a.x + fx * s - fz * 5, z: a.z + fz * s + fx * 5 });
   }
-  const poles = instanced(new THREE.CylinderGeometry(LAMP_RADIUS, LAMP_RADIUS, LAMP_HEIGHT, 6), new THREE.MeshStandardMaterial({ color: 0x555a60 }), lamps.length);
-  const bulbs = instanced(new THREE.SphereGeometry(0.4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffe9b0 }), lamps.length);
-  lamps.forEach(([x, z], i) => {
-    dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1);
-    dummy.position.set(x, LAMP_HEIGHT / 2, z); dummy.updateMatrix(); poles.setMatrixAt(i, dummy.matrix);
-    dummy.position.set(x, LAMP_HEIGHT + 0.1, z); dummy.updateMatrix(); bulbs.setMatrixAt(i, dummy.matrix);
-    world.createCollider(RAPIER.ColliderDesc.cylinder(LAMP_HEIGHT / 2, LAMP_RADIUS).setTranslation(x, LAMP_HEIGHT / 2, z));
-  });
-  scene.add(poles, bulbs);
+  const at = (y: number) => (p: { x: number; z: number }, m: THREE.Matrix4) => {
+    dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); dummy.position.set(p.x, y, p.z); dummy.updateMatrix(); m.copy(dummy.matrix);
+    return false;
+  };
+  addInstancedChunks(scene, new THREE.CylinderGeometry(LAMP_RADIUS, LAMP_RADIUS, LAMP_HEIGHT, 6), new THREE.MeshStandardMaterial({ color: 0x555a60 }), lamps, CHUNK, at(LAMP_HEIGHT / 2));
+  addInstancedChunks(scene, new THREE.SphereGeometry(0.4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffe9b0 }), lamps, CHUNK, at(LAMP_HEIGHT + 0.1));
+  for (const { x, z } of lamps) world.createCollider(RAPIER.ColliderDesc.cylinder(LAMP_HEIGHT / 2, LAMP_RADIUS).setTranslation(x, LAMP_HEIGHT / 2, z));
 
   // N-road trees (trunk colliders like the city) and reflector posts (no collider)
-  const trunks = instanced(new THREE.CylinderGeometry(0.2, 0.3, 2, 6), new THREE.MeshStandardMaterial({ color: 0x5b3d26 }), decor.trees.length);
-  const crowns = instanced(new THREE.ConeGeometry(1.6, 4.5, 7), new THREE.MeshStandardMaterial({ color: 0x1f5a2c }), decor.trees.length);
-  decor.trees.forEach((t, i) => {
+  const treeAt = (crown: boolean) => (t: { x: number; z: number; scale: number }, m: THREE.Matrix4) => {
     dummy.rotation.set(0, 0, 0); dummy.scale.set(t.scale, t.scale, t.scale);
-    dummy.position.set(t.x, t.scale, t.z); dummy.updateMatrix(); trunks.setMatrixAt(i, dummy.matrix);
-    dummy.position.set(t.x, 2 * t.scale + 2.2 * t.scale, t.z); dummy.updateMatrix(); crowns.setMatrixAt(i, dummy.matrix);
-    world.createCollider(RAPIER.ColliderDesc.cylinder(t.scale, TRUNK_RADIUS * t.scale).setTranslation(t.x, t.scale, t.z));
-  });
-  const posts = instanced(new THREE.BoxGeometry(0.1, 1, 0.1), new THREE.MeshStandardMaterial({ color: 0x777777 }), decor.reflectors.length);
-  const heads = instanced(new THREE.BoxGeometry(0.12, 0.15, 0.12), new THREE.MeshBasicMaterial({ color: 0xffffff }), decor.reflectors.length);
-  decor.reflectors.forEach((r, i) => {
-    dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1);
-    dummy.position.set(r.x, 0.5, r.z); dummy.updateMatrix(); posts.setMatrixAt(i, dummy.matrix);
-    dummy.position.set(r.x, 0.95, r.z); dummy.updateMatrix(); heads.setMatrixAt(i, dummy.matrix);
-  });
-  scene.add(trunks, crowns, posts, heads);
+    dummy.position.set(t.x, crown ? 2 * t.scale + 2.2 * t.scale : t.scale, t.z); dummy.updateMatrix(); m.copy(dummy.matrix);
+    return false;
+  };
+  addInstancedChunks(scene, new THREE.CylinderGeometry(0.2, 0.3, 2, 6), new THREE.MeshStandardMaterial({ color: 0x5b3d26 }), decor.trees, CHUNK, treeAt(false));
+  addInstancedChunks(scene, new THREE.ConeGeometry(1.6, 4.5, 7), new THREE.MeshStandardMaterial({ color: 0x1f5a2c }), decor.trees, CHUNK, treeAt(true));
+  for (const t of decor.trees) world.createCollider(RAPIER.ColliderDesc.cylinder(t.scale, TRUNK_RADIUS * t.scale).setTranslation(t.x, t.scale, t.z));
+  addInstancedChunks(scene, new THREE.BoxGeometry(0.1, 1, 0.1), new THREE.MeshStandardMaterial({ color: 0x777777 }), decor.reflectors, CHUNK, at(0.5));
+  addInstancedChunks(scene, new THREE.BoxGeometry(0.12, 0.15, 0.12), new THREE.MeshBasicMaterial({ color: 0xffffff }), decor.reflectors, CHUNK, at(0.95));
 }

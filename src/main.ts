@@ -96,6 +96,7 @@ async function startGame(): Promise<void> {
   buildTankstation(renderer.scene, world);
   buildSpeedCameras(renderer.scene, world, graph);
   const cockpit = new Cockpit(renderer.camera);
+  renderer.gl.info.autoReset = !debug; // debug overlay counts a whole post-processed frame
   const post = new PostFX(renderer.gl, renderer.scene, renderer.camera);
   const trafficView = new TrafficView(renderer.scene, world);
   const signalView = new SignalView(renderer.scene, graph);
@@ -330,6 +331,7 @@ async function startGame(): Promise<void> {
     cockpit.update(sim.lastSteer, session.drinkProgress);
     signalView.update(sim.timeSec);
     post.apply(phase === 'playing' || phase === 'paused' ? fx : drunkEffects(0), sim.timeSec);
+    if (debug) renderer.gl.info.reset();
     post.render();
 
     cupBtn.style.display = phase === 'playing' ? 'block' : 'none';
@@ -345,7 +347,7 @@ async function startGame(): Promise<void> {
 
     if (debug) {
       fpsAcc += frameDt; fpsFrames++;
-      if (fpsAcc >= 0.5) { hud.showFps(fpsFrames / fpsAcc); fpsAcc = 0; fpsFrames = 0; }
+      if (fpsAcc >= 0.5) { hud.showFps(fpsFrames / fpsAcc, renderer.gl.info.render.calls, renderer.gl.info.render.triangles); fpsAcc = 0; fpsFrames = 0; }
     }
   }
 

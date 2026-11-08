@@ -2,6 +2,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
 import { CONFIG } from '../config';
 import { mulberry32 } from '../util/rng';
+import { addInstancedChunks } from './instancedChunks';
 import type { RoadGraph } from './roadGraph';
 import type { BuildingSpec } from './types';
 
@@ -9,6 +10,7 @@ const LANE_W = CONFIG.traffic.laneWidthM;
 /** Static colliders (spec fase 2 §8.2): hitting a lamp post or tree trunk damages the car like a building. */
 const LAMP_RADIUS = 0.15, LAMP_HEIGHT = 6, TRUNK_RADIUS = 0.3;
 const dummy = new THREE.Object3D();
+const CHUNK = CONFIG.world.chunkSizeM;
 
 function instanced(geo: THREE.BufferGeometry, mat: THREE.Material, count: number): THREE.InstancedMesh {
   const m = new THREE.InstancedMesh(geo, mat, Math.max(count, 1));
@@ -50,41 +52,33 @@ export function buildCity(scene: THREE.Scene, world: RAPIER.World, g: RoadGraph,
   scene.add(roads, lines);
 
   // Buildings
-  const bMesh = instanced(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ roughness: 0.85 }), buildings.length);
-  const col = new THREE.Color();
-  buildings.forEach((b, i) => {
-    dummy.position.set(b.x, b.h / 2, b.z);
-    dummy.rotation.set(0, 0, 0);
-    dummy.scale.set(b.w, b.h, b.d);
-    dummy.updateMatrix();
-    bMesh.setMatrixAt(i, dummy.matrix);
-    bMesh.setColorAt(i, col.setHex(b.color));
-    world.createCollider(RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.h / 2, b.z));
+  addInstancedChunks(scene, new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ roughness: 0.85 }), buildings, CHUNK, (b, m, c) => {
+    dummy.position.set(b.x, b.h / 2, b.z); dummy.rotation.set(0, 0, 0); dummy.scale.set(b.w, b.h, b.d); dummy.updateMatrix();
+    m.copy(dummy.matrix); c.setHex(b.color);
+    return true;
   });
-  scene.add(bMesh);
+  for (const b of buildings) world.createCollider(RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.h / 2, b.z));
 
   // Street lamps along city streets
-  const lampPositions: [number, number][] = [];
+  const lampPositions: { x: number; z: number }[] = [];
   for (const e of g.edges) {
     if (e.kind !== 'stad') continue;
     const a = g.node(e.from), b = g.node(e.to);
     const len = g.edgeLength(e.id);
     const fx = (b.x - a.x) / len, fz = (b.z - a.z) / len;
-    for (const s of [25, 75]) lampPositions.push([a.x + fx * s - fz * 5.5, a.z + fz * s + fx * 5.5]);
+    for (const s of [25, 75]) lampPositions.push({ x: a.x + fx * s - fz * 5.5, z: a.z + fz * s + fx * 5.5 });
   }
-  const poles = instanced(new THREE.CylinderGeometry(0.08, 0.1, 6, 6), new THREE.MeshStandardMaterial({ color: 0x555a63 }), lampPositions.length);
-  const bulbs = instanced(new THREE.SphereGeometry(0.4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffe9a8 }), lampPositions.length);
-  lampPositions.forEach(([x, z], i) => {
-    dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1);
-    dummy.position.set(x, 3, z); dummy.updateMatrix(); poles.setMatrixAt(i, dummy.matrix);
-    dummy.position.set(x, 6.1, z); dummy.updateMatrix(); bulbs.setMatrixAt(i, dummy.matrix);
-    world.createCollider(RAPIER.ColliderDesc.cylinder(LAMP_HEIGHT / 2, LAMP_RADIUS).setTranslation(x, LAMP_HEIGHT / 2, z));
-  });
-  scene.add(poles, bulbs);
+  const lampAt = (y: number) => (l: { x: number; z: number }, m: THREE.Matrix4) => {
+    dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); dummy.position.set(l.x, y, l.z); dummy.updateMatrix(); m.copy(dummy.matrix);
+    return false;
+  };
+  addInstancedChunks(scene, new THREE.CylinderGeometry(0.08, 0.1, 6, 6), new THREE.MeshStandardMaterial({ color: 0x555a63 }), lampPositions, CHUNK, lampAt(3));
+  addInstancedChunks(scene, new THREE.SphereGeometry(0.4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffe9a8 }), lampPositions, CHUNK, lampAt(6.1));
+  for (const { x, z } of lampPositions) world.createCollider(RAPIER.ColliderDesc.cylinder(LAMP_HEIGHT / 2, LAMP_RADIUS).setTranslation(x, LAMP_HEIGHT / 2, z));
 
   // Trees around the ring road area
   const ringEdges = g.edgesOfKind('ring');
-  const trees: [number, number, number][] = [];
+  const trees: { x: number; z: number; sc: number }[] = [];
   for (const e of ringEdges) {
     const a = g.node(e.from), b = g.node(e.to);
     const len = g.edgeLength(e.id);
@@ -94,20 +88,18 @@ export function buildCity(scene: THREE.Scene, world: RAPIER.World, g: RoadGraph,
         const off = side * (16 + rng() * 40);
         const x = a.x + fx * s - fz * off, z = a.z + fz * s + fx * off;
         if (g.nearestEdge(x, z).distance < 14) continue;
-        trees.push([x, z, 0.8 + rng() * 0.8]);
+        trees.push({ x, z, sc: 0.8 + rng() * 0.8 });
       }
     }
   }
-  const trunks = instanced(new THREE.CylinderGeometry(0.2, 0.3, 2, 6), new THREE.MeshStandardMaterial({ color: 0x5b3d26 }), trees.length);
-  const crowns = instanced(new THREE.ConeGeometry(1.6, 4.5, 7), new THREE.MeshStandardMaterial({ color: 0x1f5a2c }), trees.length);
-  trees.forEach(([x, z, sc], i) => {
-    dummy.rotation.set(0, 0, 0);
-    dummy.scale.set(sc, sc, sc);
-    dummy.position.set(x, sc, z); dummy.updateMatrix(); trunks.setMatrixAt(i, dummy.matrix);
-    dummy.position.set(x, 2 * sc + 2.2 * sc, z); dummy.updateMatrix(); crowns.setMatrixAt(i, dummy.matrix);
-    world.createCollider(RAPIER.ColliderDesc.cylinder(sc, TRUNK_RADIUS * sc).setTranslation(x, sc, z));
-  });
-  scene.add(trunks, crowns);
+  const treeAt = (crown: boolean) => (t: { x: number; z: number; sc: number }, m: THREE.Matrix4) => {
+    dummy.rotation.set(0, 0, 0); dummy.scale.set(t.sc, t.sc, t.sc);
+    dummy.position.set(t.x, crown ? 2 * t.sc + 2.2 * t.sc : t.sc, t.z); dummy.updateMatrix(); m.copy(dummy.matrix);
+    return false;
+  };
+  addInstancedChunks(scene, new THREE.CylinderGeometry(0.2, 0.3, 2, 6), new THREE.MeshStandardMaterial({ color: 0x5b3d26 }), trees, CHUNK, treeAt(false));
+  addInstancedChunks(scene, new THREE.ConeGeometry(1.6, 4.5, 7), new THREE.MeshStandardMaterial({ color: 0x1f5a2c }), trees, CHUNK, treeAt(true));
+  for (const t of trees) world.createCollider(RAPIER.ColliderDesc.cylinder(t.sc, TRUNK_RADIUS * t.sc).setTranslation(t.x, t.sc, t.z));
 
   // Guard rails along the ring (open towards ramps on the inside)
   const rampNodes = new Set(g.edgesOfKind('oprit').flatMap((e) => [e.from, e.to]));

@@ -9,7 +9,7 @@ export const CONFIG = {
   damage: { thresholdKmh: 5, factor: 0.8, maxPerHit: 60, crackLevels: [25, 50, 75] },
   feed: { minGapBeforeRepeat: 20 },
   traffic: { radiusM: 300, maxCars: 30, minGapM: 8, headwaySec: 2, laneWidthM: 3.5 },
-  world: { fogFarM: 300, seed: 1337 },
+  world: { fogFarM: 300, seed: 1337, chunkSizeM: 250 },
   phone: { coverFraction: 0.4 },
   loop: { fixedDt: 1 / 60, maxFrameDt: 0.25 },
   blackout: { durationSec: 0.5 },
