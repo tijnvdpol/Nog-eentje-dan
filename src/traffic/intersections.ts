@@ -50,6 +50,9 @@ export class IntersectionManager {
 
   inside(nodeId: string): readonly number[] { return [...(this.insideMap.get(nodeId)?.keys() ?? [])]; }
 
+  /** The cars on the intersection with the approach each one came from. */
+  insideEntries(nodeId: string): readonly [number, Approach][] { return [...(this.insideMap.get(nodeId)?.entries() ?? [])]; }
+
   /** Forget every car not in `aliveIds` (despawned), so a vanished car never holds an intersection. */
   prune(aliveIds: ReadonlySet<number>): void {
     for (const m of [...this.insideMap.values(), ...this.waiting.values()])
