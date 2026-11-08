@@ -11,3 +11,14 @@ it('formats Dutch end lines', () => {
   expect(lines).toContain('6 biertjes, 312 likes.');
   s.beers = 1; s.likes = 1; expect(formatEndLines(s)).toContain('1 biertje, 1 like.');
 });
+it('formats the scare line', () => {
+  const s = new RunStats(); expect(formatEndLines(s)).toContain('Niemand laten schrikken. Knap.');
+  s.scared = { jogger: 2, student: 1, oma: 1 }; expect(formatEndLines(s)).toContain('2 joggers, 1 student en 1 bejaarde laten schrikken.');
+  s.scared = { jogger: 0, student: 0, oma: 3 }; expect(formatEndLines(s)).toContain('3 bejaarden laten schrikken.');
+  s.scared = { jogger: 1, student: 2, oma: 0 }; expect(formatEndLines(s)).toContain('1 jogger en 2 studenten laten schrikken.');
+});
+it('formats the task line', () => {
+  const s = new RunStats(); expect(formatEndLines(s)).toContain('0 opdrachten voltooid, 0 keer door rood.');
+  s.tasksCompleted = 1; s.redLights = 1; expect(formatEndLines(s)).toContain('1 opdracht voltooid, 1 keer door rood.');
+  s.tasksCompleted = 4; s.redLights = 3; expect(formatEndLines(s)).toContain('4 opdrachten voltooid, 3 keer door rood.');
+});

@@ -1,8 +1,13 @@
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { RoadData, RoadEdge, RoadNode } from '../src/world/types';
+import type { Crossing, RoadData, RoadEdge, RoadNode, SignalSpec } from '../src/world/types';
 
 const GRID = 7, SPACING = 100, RING_N = 32, RING_R = 640;
+/** Signalised intersections (spec fase 2 §5.1), in offset order. */
+const SIGNAL_NODES = ['g3_1', 'g3_3', 'g3_5', 'g1_3', 'g5_3', 'g3_6'];
+const SIGNAL_OFFSET_STEP = 4, CROSSING_FROM_NODE = 10;
+/** Stand-alone crossings near the snackbar and the supermarket (spec fase 2 §7.1). */
+const EXTRA_CROSSINGS: [string, number][] = [['cv4_2', 70], ['cv4_3', 30], ['ch1_5', 70], ['cv2_5', 30]];
 
 export function buildRoadData(): RoadData {
   const nodes: RoadNode[] = [];
@@ -41,8 +46,19 @@ export function buildRoadData(): RoadData {
     edges.push({ id, from: gid(i, j), to: rid(best), lanesPerDir: 1, speedLimitKmh: 80, zone: 'snelweg' });
   }
 
+  const signals: SignalSpec[] = SIGNAL_NODES.map((nodeId, i) => ({ nodeId, offsetSec: i * SIGNAL_OFFSET_STEP }));
+  const crossings: Crossing[] = [];
+  const crossing = (edgeId: string, s: number) => crossings.push({ id: `x_${edgeId}_${s}`, edgeId, s });
+  for (const nodeId of SIGNAL_NODES)
+    for (const e of edges.filter((x) => x.zone === 'city' && (x.from === nodeId || x.to === nodeId))) {
+      const a = nodes.find((n) => n.id === e.from)!, b = nodes.find((n) => n.id === e.to)!;
+      const len = Math.hypot(b.x - a.x, b.z - a.z);
+      crossing(e.id, e.from === nodeId ? CROSSING_FROM_NODE : len - CROSSING_FROM_NODE);
+    }
+  for (const [edgeId, s] of EXTRA_CROSSINGS) crossing(edgeId, s);
+
   return {
-    nodes, edges,
+    nodes, edges, signals, crossings,
     places: [
       { id: 'feestje', name: 'Feestje', x: -200, z: -200 },
       { id: 'snackbar', name: 'Snackbar', x: 100, z: 0 },

@@ -1,7 +1,7 @@
 export interface DriveInput { throttle: number; brake: number; steer: number; handbrake: boolean }
-export type OneShot = 'togglePhone' | 'drink' | 'pause';
+export type OneShot = 'togglePhone' | 'drink' | 'pause' | 'mute';
 
-const ONE_SHOT_KEYS: Record<string, OneShot> = { KeyQ: 'togglePhone', KeyE: 'drink', Escape: 'pause' };
+const ONE_SHOT_KEYS: Record<string, OneShot> = { KeyQ: 'togglePhone', KeyE: 'drink', Escape: 'pause', KeyM: 'mute' };
 const PREVENT = new Set(['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 
 export class Input {

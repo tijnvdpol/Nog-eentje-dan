@@ -1,5 +1,7 @@
 import type { Zone } from '../config';
-import type { Place, RoadData, RoadEdge, RoadNode } from './types';
+import type { Crossing, Place, RoadDataInput, RoadEdge, RoadNode, SignalSpec } from './types';
+
+export type Axis = 'nz' | 'ow';
 
 export class RoadGraph {
   private nodeMap = new Map<string, RoadNode>();
@@ -9,8 +11,11 @@ export class RoadGraph {
   readonly edges: readonly RoadEdge[];
   readonly places: readonly Place[];
   readonly nodes: readonly RoadNode[];
+  readonly signals: readonly SignalSpec[];
+  readonly crossings: readonly Crossing[];
+  private signalMap = new Map<string, SignalSpec>();
 
-  private constructor(d: RoadData) {
+  private constructor(d: RoadDataInput) {
     for (const n of d.nodes) {
       if (this.nodeMap.has(n.id)) throw new Error(`Duplicate node id ${n.id}`);
       this.nodeMap.set(n.id, n);
@@ -28,9 +33,34 @@ export class RoadGraph {
     this.edges = d.edges;
     this.places = d.places;
     this.nodes = d.nodes;
+    this.signals = d.signals ?? [];
+    this.crossings = d.crossings ?? [];
+    for (const sig of this.signals) {
+      if (!this.nodeMap.has(sig.nodeId)) throw new Error(`Signal on unknown node ${sig.nodeId}`);
+      this.signalMap.set(sig.nodeId, sig);
+    }
+    for (const c of this.crossings) {
+      const len = this.lengths.get(c.edgeId);
+      if (len === undefined) throw new Error(`Crossing ${c.id} on unknown edge ${c.edgeId}`);
+      if (!(c.s >= 0 && c.s <= len)) throw new Error(`Crossing ${c.id} outside edge ${c.edgeId}`);
+    }
   }
 
-  static fromData(d: RoadData): RoadGraph { return new RoadGraph(d); }
+  static fromData(d: RoadDataInput): RoadGraph { return new RoadGraph(d); }
+
+  signalAt(nodeId: string): SignalSpec | undefined { return this.signalMap.get(nodeId); }
+
+  /** A node where traffic needs right of way: >= 3 edges and not part of the ring (ring node ids start with 'r'). */
+  isIntersection(nodeId: string): boolean {
+    return !nodeId.startsWith('r') && this.edgesAt(nodeId).length >= 3;
+  }
+
+  /** 'ow' (east-west) when the edge runs mostly along x, otherwise 'nz'. */
+  axisOf(edgeId: string): Axis {
+    const e = this.edge(edgeId);
+    const a = this.node(e.from), b = this.node(e.to);
+    return Math.abs(b.x - a.x) >= Math.abs(b.z - a.z) ? 'ow' : 'nz';
+  }
 
   node(id: string): RoadNode {
     const n = this.nodeMap.get(id);

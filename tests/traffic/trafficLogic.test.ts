@@ -90,7 +90,7 @@ it('brakes for a stopped player around a bend of the ring', () => {
   const next = g.edgesAt(e0.to).find((e) => e.id !== 'ring0')!;
   const player = lanePose({ id: 0, edgeId: next.id, dir: next.from === e0.to ? 1 : -1, lane: 1, s: 40, speed: 0 }, g);
   const c: TrafficCar = { id: 1, edgeId: 'ring0', dir: 1, lane: 1, s: 0, speed: 130 / 3.6 };
-  const m = TrafficManager.forTest(g, [c], () => 0);
+  const m = TrafficManager.forTest(g, [c], () => 0.99); // no lane change, no exit
   for (let i = 0; i < 1200; i++) {
     m.update(1 / 60, { x: player.x, z: player.z });
     const p = lanePose(c, g);
@@ -113,4 +113,135 @@ it('spawns cars behind the player no faster than they can stop', () => {
       expect(Math.abs(lateral) < 1.75 && Math.abs(along) < 4.5).toBe(false);
     }
   }
+});
+
+// ---- fase 2: stoplichten, reservering, invoegen, wisselen, toeter ----
+const OFF_ROAD = { x: 50, z: -50 }; // middle of a block, never in a lane
+const len = (id: string) => g.edgeLength(id);
+const run = (m: TrafficManager, secs: number, player = OFF_ROAD, time: (t: number) => number = (t) => t, dt = 1 / 30, obstacles: { edgeId: string; s: number }[] = [], t0 = 0) => {
+  let t = t0;
+  for (let i = 0; i < Math.round(secs / dt); i++) { m.update(dt, player, time(t), obstacles); t += dt; }
+  return t;
+};
+
+it('stops at the 12.5 m stop line on red', () => {
+  // g3_3 has offset 4: nz is red from t = 14 to 26
+  const c = car({ edgeId: 'cv3_2', s: 0 }); const m = TrafficManager.forTest(g, [c]);
+  run(m, 20, OFF_ROAD, () => 15);
+  expect(c.edgeId).toBe('cv3_2');
+  expect(Math.abs(c.s - (len('cv3_2') - 12.5))).toBeLessThanOrEqual(1);
+  expect(c.speed).toBeCloseTo(0, 1);
+});
+it('drives through on green', () => {
+  const c = car({ edgeId: 'cv3_2', s: 10 }); const m = TrafficManager.forTest(g, [c]);
+  run(m, 10, OFF_ROAD, () => 5);
+  expect(c.edgeId).not.toBe('cv3_2');
+});
+it('stops 6 m before an unsignalized intersection that is occupied from another approach', () => {
+  // g3_4 (0, 100): car 2 stands on it, arriving from the west (ch2_4); car 1 comes from the south (cv3_3)
+  const c1 = car({ id: 1, edgeId: 'cv3_3', s: 10 }); const c2 = car({ id: 2, edgeId: 'ch2_4', s: len('ch2_4') - 3, next: { edgeId: 'cv3_4', dir: 1, lane: 0 } }); // turns away from car 1's route
+  const m = TrafficManager.forTest(g, [c1, c2]);
+  for (let i = 0; i < 600; i++) { c2.s = len('ch2_4') - 3; c2.speed = 0; m.update(1 / 30, OFF_ROAD, i / 30); }
+  expect(m.intersections.inside('g3_4')).toEqual([2]);
+  expect(c1.edgeId).toBe('cv3_3');
+  expect(Math.abs(c1.s - (len('cv3_3') - 6))).toBeLessThanOrEqual(1);
+  expect(c1.speed).toBeCloseTo(0, 1);
+});
+it('looks ahead to the leader on its next edge', () => {
+  const a = car({ id: 1, edgeId: 'cv3_4', s: 5 });
+  const b = car({ id: 2, edgeId: 'cv3_3', s: len('cv3_3') - 30, speed: 10, next: { edgeId: 'cv3_4', dir: 1, lane: 0 } });
+  const m = TrafficManager.forTest(g, [a, b]);
+  for (let i = 0; i < 600; i++) {
+    a.edgeId = 'cv3_4'; a.s = 5; a.speed = 0; m.update(1 / 30, OFF_ROAD, i / 30);
+    const pa = lanePose(a, g), pb = lanePose(b, g);
+    expect(Math.hypot(pa.x - pb.x, pa.z - pb.z)).toBeGreaterThanOrEqual(8);
+  }
+  expect(b.speed).toBeCloseTo(0, 1);
+});
+it('waits at the end of a ramp until the ring lane is free', () => {
+  // opr2 runs from g3_6 to ring node r8; ring7 ends at r8, ring8 starts there
+  const ramp = car({ id: 1, edgeId: 'opr2', s: len('opr2') - 5, next: { edgeId: 'ring8', dir: 1, lane: 0 } });
+  const ring = car({ id: 2, edgeId: 'ring7', s: len('ring7') - 40, speed: 36, next: { edgeId: 'ring8', dir: 1, lane: 0 } });
+  const m = TrafficManager.forTest(g, [ramp, ring]);
+  const player = { x: 50, z: 560 };
+  let t = 0;
+  while (ring.edgeId === 'ring7') { m.update(1 / 60, player, t); t += 1 / 60; expect(ramp.edgeId).toBe('opr2'); }
+  for (let i = 0; i < 300; i++) { m.update(1 / 60, player, t); t += 1 / 60; }
+  expect(ramp.edgeId).toBe('ring8');
+});
+it('takes the exit only from lane 0', () => {
+  const l1 = car({ id: 1, edgeId: 'ring7', lane: 1, s: len('ring7') - 0.5, speed: 30 });
+  const l0 = car({ id: 2, edgeId: 'ring7', lane: 0, s: len('ring7') - 0.5, speed: 30 });
+  const m = TrafficManager.forTest(g, [l1, l0], () => 0); // rng 0 → always take the exit when allowed
+  m.update(1 / 30, { x: 50, z: 560 }, 0);
+  expect(l1.edgeId).toBe('ring8'); expect(l0.edgeId).toBe('opr2');
+});
+it('changes lane smoothly in 1.5 s and only when free', () => {
+  const c = car({ id: 1, edgeId: 'ring0', lane: 0, s: len('ring0') - 0.2, speed: 30 });
+  const m = TrafficManager.forTest(g, [c], () => 0); // rng 0 → always try to change lane
+  const player = { x: 560, z: 100 };
+  m.update(1 / 60, player, 0);
+  expect(c.edgeId).toBe('ring1'); expect(c.lane).toBe(1); expect(c.laneFrom).toBe(0);
+  const startX = lanePose(c, g);
+  for (let i = 0; i < 45; i++) m.update(1 / 60, player, 0);
+  expect(c.laneT!).toBeGreaterThan(0.45); expect(c.laneT!).toBeLessThan(0.6);
+  for (let i = 0; i < 50; i++) m.update(1 / 60, player, 0);
+  expect(c.laneT ?? 1).toBe(1); expect(c.lane).toBe(1);
+  expect(startX).toBeDefined();
+
+  const d = car({ id: 1, edgeId: 'ring0', lane: 0, s: len('ring0') - 0.2, speed: 30 });
+  const blocker = car({ id: 2, edgeId: 'ring1', lane: 1, s: 10, speed: 30 });
+  const m2 = TrafficManager.forTest(g, [d, blocker], () => 0);
+  m2.update(1 / 60, player, 0);
+  expect(d.edgeId).toBe('ring1'); expect(d.lane).toBe(0); expect(d.laneT ?? 1).toBe(1);
+});
+it('lanePose slides sideways during a lane change', () => {
+  const base = car({ edgeId: 'ring0', s: 50 });
+  const p0 = lanePose({ ...base, lane: 0 }, g), p1 = lanePose({ ...base, lane: 1 }, g);
+  const mid = lanePose({ ...base, lane: 1, laneFrom: 0, laneT: 0.5 }, g);
+  expect(mid.x).toBeCloseTo((p0.x + p1.x) / 2, 5); expect(mid.z).toBeCloseTo((p0.z + p1.z) / 2, 5);
+});
+it('stops for a pedestrian obstacle', () => {
+  const c = car({ edgeId: 'cv3_2', s: 0 }); const m = TrafficManager.forTest(g, [c]);
+  run(m, 20, OFF_ROAD, () => 5, 1 / 30, [{ edgeId: 'cv3_2', s: 50 }]);
+  expect(c.s).toBeLessThan(46.5); expect(c.s).toBeGreaterThan(40); expect(c.speed).toBeCloseTo(0, 1);
+  // driving the other way the crossing sits at len − 50 along the car
+  const d = car({ edgeId: 'cv3_2', dir: -1, s: 0 }); const m2 = TrafficManager.forTest(g, [d]);
+  run(m2, 20, OFF_ROAD, () => 5, 1 / 30, [{ edgeId: 'cv3_2', s: 60 }]);
+  expect(d.s).toBeLessThan(len('cv3_2') - 60 - 3.5);
+});
+it('honks once after 2 s blocked by the player, then waits 10 s', () => {
+  const c = car({ s: 5 }); const m = TrafficManager.forTest(g, [c]);
+  // player stands still right at the car's stopping distance (gap 8 m), so the car waits from the start
+  const p = lanePose(car({ s: 5 + 4.5 + 8 }), g); const player = { x: p.x, z: p.z };
+  let t = run(m, 2.5, player);
+  expect(m.takeHorns()).toBe(1);
+  t = run(m, 5, player, (x) => x, 1 / 30, [], t); expect(m.takeHorns()).toBe(0);
+  run(m, 6, player, (x) => x, 1 / 30, [], t); expect(m.takeHorns()).toBe(1);
+});
+it('does not stay jammed after the player leaves an intersection', () => {
+  const arms: [string, 1 | -1][] = [['cv3_2', 1], ['cv3_3', -1], ['ch2_3', 1], ['ch3_3', -1]];
+  const cars: TrafficCar[] = [];
+  for (let i = 0; i < 10; i++) { const [edgeId, dir] = arms[i % 4]; cars.push(car({ id: i + 1, edgeId, dir, s: 20 + Math.floor(i / 4) * 25, speed: 8 })); }
+  const m = TrafficManager.forTest(g, cars, mulberry32(9));
+  let t = run(m, 30, { x: 0, z: 0 });
+  const stopped = new Map<number, number>(); let worst = 0;
+  for (let i = 0; i < 60 * 30; i++) {
+    m.update(1 / 30, { x: 50, z: 50 }, t); t += 1 / 30;
+    for (const c of m.cars) {
+      const p = lanePose(c, g);
+      const v = c.speed < 0.1 && Math.hypot(p.x, p.z) < 20 ? (stopped.get(c.id) ?? 0) + 1 / 30 : 0;
+      stopped.set(c.id, v); worst = Math.max(worst, v);
+    }
+  }
+  expect(worst).toBeLessThanOrEqual(30);
+});
+it('waits at its stop line instead of entering when the crossing just past the intersection is occupied', () => {
+  // green for nz at g3_3, but someone is on the zebra crossing 10 m into cv3_3 (straight on)
+  const c = car({ edgeId: 'cv3_2', s: 30, speed: 10, next: { edgeId: 'cv3_3', dir: 1, lane: 0 } });
+  const m = TrafficManager.forTest(g, [c]);
+  run(m, 15, OFF_ROAD, () => 5, 1 / 30, [{ edgeId: 'cv3_3', s: 10 }]);
+  expect(c.edgeId).toBe('cv3_2'); expect(c.insideNode).toBeUndefined();
+  expect(c.s).toBeLessThanOrEqual(len('cv3_2') - 12.5); expect(c.speed).toBeCloseTo(0, 1);
+  expect(m.intersections.inside('g3_3')).toEqual([]);
 });

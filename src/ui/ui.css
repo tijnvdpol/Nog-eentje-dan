@@ -21,3 +21,13 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-f
 .screen td { padding: 3px 12px; }
 .screen td:first-child { color: #66e0ff; font-weight: 700; white-space: nowrap; }
 .screen__new { color: #ffd166; font-weight: 800; font-size: 22px; }
+/* fase 2: destination arrow, beer pins, cupholder count */
+.dest-arrow { position: fixed; z-index: 12; top: 14px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: #000a; border-radius: 999px; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; pointer-events: none; }
+.dest-arrow[hidden] { display: none; }
+.dest-arrow__icon { display: inline-block; font-size: 26px; color: #ffd166; transition: transform .1s linear; }
+.beer-pin { position: fixed; z-index: 11; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; pointer-events: none;
+  background: radial-gradient(circle, #000c 58%, transparent 60%), conic-gradient(#ffd166 calc(var(--p, 0) * 360deg), #ffffff33 0); animation: beer-bob 1.2s ease-in-out infinite; }
+.beer-pin[hidden] { display: none; }
+@keyframes beer-bob { 0%,100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+.cup__count { position: absolute; right: 2px; top: 2px; min-width: 24px; height: 24px; padding: 0 5px; box-sizing: border-box; border-radius: 12px; background: #ffd166; color: #111; font: 800 14px/24px system-ui, sans-serif; text-align: center; }
+.cup__count--empty { background: #ff4d4d; color: #fff; }
