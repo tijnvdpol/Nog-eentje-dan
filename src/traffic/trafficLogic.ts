@@ -160,8 +160,12 @@ export class TrafficManager {
           const at = (c.dir === 1 ? ob.s : len - ob.s) - CROSSING_STOP_M;
           if (at > c.s) consider(stopGap(at, c.s, STOP_LINE_MARGIN));
         } else if (n && ob.edgeId === n.edgeId) {
-          const at = remaining + (n.dir === 1 ? ob.s : g.edgeLength(n.edgeId) - ob.s) - CROSSING_STOP_M;
-          if (at > 0) consider(stopGap(c.s + at, c.s, STOP_LINE_MARGIN));
+          const past = (n.dir === 1 ? ob.s : g.edgeLength(n.edgeId) - ob.s) - CROSSING_STOP_M; // stop point past the node
+          // a car must not wait for the crossing while standing on the intersection: hold at the stop line instead
+          if (line?.kind === 'intersection' && c.s < line.stopS && past - STOP_LINE_MARGIN < CONFIG.signals.clearAfterM) {
+            allowed = false;
+            consider(stopGap(line.stopS, c.s, STOP_LINE_MARGIN));
+          } else if (remaining + past > 0) consider(stopGap(c.s + remaining + past, c.s, STOP_LINE_MARGIN));
         }
       }
 

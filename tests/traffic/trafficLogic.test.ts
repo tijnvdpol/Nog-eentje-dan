@@ -236,3 +236,12 @@ it('does not stay jammed after the player leaves an intersection', () => {
   }
   expect(worst).toBeLessThanOrEqual(30);
 });
+it('waits at its stop line instead of entering when the crossing just past the intersection is occupied', () => {
+  // green for nz at g3_3, but someone is on the zebra crossing 10 m into cv3_3 (straight on)
+  const c = car({ edgeId: 'cv3_2', s: 30, speed: 10, next: { edgeId: 'cv3_3', dir: 1, lane: 0 } });
+  const m = TrafficManager.forTest(g, [c]);
+  run(m, 15, OFF_ROAD, () => 5, 1 / 30, [{ edgeId: 'cv3_3', s: 10 }]);
+  expect(c.edgeId).toBe('cv3_2'); expect(c.insideNode).toBeUndefined();
+  expect(c.s).toBeLessThanOrEqual(len('cv3_2') - 12.5); expect(c.speed).toBeCloseTo(0, 1);
+  expect(m.intersections.inside('g3_3')).toEqual([]);
+});
