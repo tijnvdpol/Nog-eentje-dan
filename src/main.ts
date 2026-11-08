@@ -188,7 +188,7 @@ async function startGame(): Promise<void> {
       }
       blackoutEl.classList.toggle('on', blackout.update(frameDt, fx.blackoutPerSec, rng));
       phone?.applyEffects(fx);
-      hud.update({ score: session.score, speedKmh: car.speedKmh, damage: session.damage, promille: session.promille, multiplier: session.multiplier, combo: session.combo });
+      hud.update({ score: session.score, speedKmh: car.speedKmh, damage: session.damage, promille: session.promille, multiplier: session.multiplier, combo: session.comboAt(gameTime) });
     }
 
     // camera follows the car (driver sits on the left)

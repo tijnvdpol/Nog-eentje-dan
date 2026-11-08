@@ -1,6 +1,8 @@
 import { crackSvg } from './cracks';
 
 const nl = (v: number, d: number) => v.toFixed(d).replace('.', ',');
+/** Like nl, but drops trailing zeros: 1 → "1", 1.5 → "1,5", 1.25 → "1,25". */
+const nlTrim = (v: number, d: number) => nl(v, d).replace(/,?0+$/, '');
 
 export class Hud {
   private score: HTMLElement;
@@ -24,7 +26,7 @@ export class Hud {
 
   update(v: { score: number; speedKmh: number; damage: number; promille: number; multiplier: number; combo: number }): void {
     this.score.textContent = String(Math.round(v.score));
-    this.combo.textContent = v.combo > 1 ? `combo ×${nl(v.combo, 2)}` : '';
+    this.combo.textContent = `combo ×${nlTrim(v.combo, 2)}`;
     this.dash.innerHTML =
       `<span><b>${Math.round(v.speedKmh)}</b> km/u</span>` +
       `<span>schade <b>${Math.round(v.damage)}</b>%</span>` +
