@@ -6,6 +6,8 @@ import type { RoadGraph } from './roadGraph';
 import type { BuildingSpec } from './types';
 
 const LANE_W = CONFIG.traffic.laneWidthM;
+/** Static colliders (spec fase 2 §8.2): hitting a lamp post or tree trunk damages the car like a building. */
+const LAMP_RADIUS = 0.15, LAMP_HEIGHT = 6, TRUNK_RADIUS = 0.3;
 const dummy = new THREE.Object3D();
 
 function instanced(geo: THREE.BufferGeometry, mat: THREE.Material, count: number): THREE.InstancedMesh {
@@ -76,6 +78,7 @@ export function buildCity(scene: THREE.Scene, world: RAPIER.World, g: RoadGraph,
     dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1);
     dummy.position.set(x, 3, z); dummy.updateMatrix(); poles.setMatrixAt(i, dummy.matrix);
     dummy.position.set(x, 6.1, z); dummy.updateMatrix(); bulbs.setMatrixAt(i, dummy.matrix);
+    world.createCollider(RAPIER.ColliderDesc.cylinder(LAMP_HEIGHT / 2, LAMP_RADIUS).setTranslation(x, LAMP_HEIGHT / 2, z));
   });
   scene.add(poles, bulbs);
 
@@ -102,6 +105,7 @@ export function buildCity(scene: THREE.Scene, world: RAPIER.World, g: RoadGraph,
     dummy.scale.set(sc, sc, sc);
     dummy.position.set(x, sc, z); dummy.updateMatrix(); trunks.setMatrixAt(i, dummy.matrix);
     dummy.position.set(x, 2 * sc + 2.2 * sc, z); dummy.updateMatrix(); crowns.setMatrixAt(i, dummy.matrix);
+    world.createCollider(RAPIER.ColliderDesc.cylinder(sc, TRUNK_RADIUS * sc).setTranslation(x, sc, z));
   });
   scene.add(trunks, crowns);
 

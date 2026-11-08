@@ -1,4 +1,5 @@
-import type { Zone } from '../config';
+import { CONFIG, type Zone } from '../config';
+import type { PedKind } from '../pedestrians/pedestrianLogic';
 import { ComboTracker, bierMultiplier, likePoints, zoneMultiplier } from '../scoring/scoring';
 import { PromilleModel } from '../drunk/promille';
 import { DamageModel } from '../vehicle/damage';
@@ -46,6 +47,13 @@ export class GameSession {
     this.score += pts;
     this.stats.addLike();
     return pts;
+  }
+
+  /** Nearly hit a pedestrian (spec fase 2 §7.3): a flat penalty, never below zero. */
+  nearMiss(kind: PedKind): void {
+    if (this.over) return;
+    this.score = Math.max(0, this.score - CONFIG.peds.nearMissPenalty);
+    this.stats.addScared(kind);
   }
 
   startDrink(): boolean { return this.over ? false : this.promilleModel.startDrink(); }

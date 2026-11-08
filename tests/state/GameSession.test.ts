@@ -28,3 +28,12 @@ it('comboAt drops back to 1 after the combo window expires', () => {
   expect(g.comboAt(2.5)).toBe(1.25);
   expect(g.comboAt(4.5)).toBe(1);
 });
+it('near miss costs 25 and never goes below 0', () => {
+  const g = new GameSession(); g.nearMiss('oma'); expect(g.score).toBe(0); expect(g.stats.scared.oma).toBe(1);
+  g.tick(0.1, snelweg); g.like('p1', 1); g.nearMiss('jogger'); expect(g.score).toBe(0); // 15 − 25 → 0
+  g.like('p2', 10); g.like('p3', 20); g.like('p4', 30); expect(g.score).toBe(45); g.nearMiss('student'); expect(g.score).toBe(20);
+  expect(g.stats.scared).toEqual({ jogger: 1, student: 1, oma: 1 });
+});
+it('near miss after game over changes nothing', () => {
+  const g = new GameSession(); g.impact(100); g.impact(100); g.nearMiss('oma'); expect(g.stats.scared.oma).toBe(0);
+});

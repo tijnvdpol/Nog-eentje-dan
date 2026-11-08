@@ -8,6 +8,8 @@ import { FixedStepLoop } from './core/loop';
 import { BlackoutTimer, drunkEffects } from './drunk/effects';
 import { Simulation } from './game/Simulation';
 import { Input } from './input/input';
+import { PedestrianView } from './pedestrians/PedestrianView';
+import type { PedKind } from './pedestrians/pedestrianLogic';
 import { Phone, type Post } from './phone/Phone';
 import { Cockpit } from './render/Cockpit';
 import { PostFX } from './render/PostFX';
@@ -32,6 +34,12 @@ const INTRO: [string, string][] = [
   ['Swiep', 'Dubbelklik = like. Meer likes = meer punten 🔥'],
   ['Feestje 🍻', 'Er staat nog een biertje in je cupholder (E) 😉'],
 ];
+
+const SCARED: Record<PedKind, [string, string]> = {
+  jogger: ['Jogger Joyce', 'Kijk uit, gek! 🏃‍♀️'],
+  student: ['Student Stijn', 'Bro, ik zat op mijn telefoon 📱'],
+  oma: ['Oma Truus', 'ZAG JE MIJ NIET?! 👵'],
+};
 
 type Phase = 'menu' | 'playing' | 'paused' | 'over';
 
@@ -62,6 +70,7 @@ async function startGame(): Promise<void> {
   const post = new PostFX(renderer.gl, renderer.scene, renderer.camera);
   const trafficView = new TrafficView(renderer.scene, world);
   const signalView = new SignalView(renderer.scene, graph);
+  const pedView = new PedestrianView(renderer.scene);
 
   const feestje = graph.places.find((p) => p.id === 'feestje')!;
   const spawn = { x: feestje.x - CONFIG.traffic.laneWidthM / 2, z: feestje.z, heading: 0 };
@@ -79,13 +88,14 @@ async function startGame(): Promise<void> {
 
   let session = new GameSession();
   let phone: Phone | null = null;
-  const sim = new Simulation({ world, graph, car, trafficView, rng, bus });
+  const sim = new Simulation({ world, graph, car, trafficView, pedView, rng, bus });
   let blackout = new BlackoutTimer();
   let phase: Phase = 'menu';
   let introTimers: number[] = [];
 
   bus.on('like', ({ postId }) => { session.like(postId, sim.timeSec); });
   bus.on('horn', () => { console.debug('horn'); });
+  bus.on('nearMiss', ({ kind }) => { phone?.notify(...SCARED[kind]); });
   car.onImpact((kmh) => {
     const levels = session.impact(kmh);
     if (levels.length) { hud.showCracks(levels); bus.emit('cracks', { levels }); }
