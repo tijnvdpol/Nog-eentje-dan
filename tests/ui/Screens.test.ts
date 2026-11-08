@@ -6,10 +6,25 @@ import { crackSvg } from '../../src/ui/cracks';
 let root: HTMLElement, s: Screens;
 beforeEach(() => { document.body.innerHTML = '<div id="r"></div>'; root = document.getElementById('r')!; s = new Screens(root); });
 
-it('start screen shows title and disclaimer', () => {
-  s.showStart(() => {});
+it('start screen shows title, disclaimer, best score, M and two buttons', () => {
+  const calls: string[] = [];
+  s.showStart({ best: 4321, onStart: () => calls.push('start'), onSettings: () => calls.push('settings') });
   expect(root.textContent).toContain('Nog Eentje Dan');
   expect(root.textContent).toContain('Satire. Dit is precies waarom je dit nooit in het echt doet.');
+  expect(root.textContent).toContain('4321'); expect(root.textContent).toContain('Geluid aan/uit');
+  const [start, settings] = Array.from(root.querySelectorAll('button'));
+  expect(start.textContent).toBe('Start'); expect(settings.textContent).toBe('Instellingen');
+  start.click(); settings.click(); expect(calls).toEqual(['start', 'settings']);
+});
+it('start screen hides the best score when there is none', () => {
+  s.showStart({ best: 0, onStart: () => {}, onSettings: () => {} });
+  expect(root.textContent).not.toContain('Highscore');
+});
+it('mobile screen offers "Toch proberen"', () => {
+  let tried = false; s.showMobile(() => (tried = true));
+  expect(root.textContent).toContain('Nog Eentje Dan speel je op een laptop. Je hebt een toetsenbord nodig 🍻');
+  expect(root.textContent).toContain('Satire.');
+  (root.querySelector('.screen__link') as HTMLElement).click(); expect(tried).toBe(true);
 });
 it('game over shows reason, lines, score and restart', () => {
   let restarted = false;
@@ -25,7 +40,8 @@ it('wrecked reason text', () => {
   expect(root.textContent).not.toContain('Nieuwe highscore!');
 });
 it('pause, webgl error and hide', () => {
-  s.showPause(() => {}); expect(root.textContent).toContain('Verder rijden');
+  let st = false; s.showPause(() => {}, () => (st = true)); expect(root.textContent).toContain('Verder rijden');
+  (root.querySelectorAll('button')[1] as HTMLButtonElement).click(); expect(st).toBe(true);
   s.showWebGLError(); expect(root.textContent).toContain('Je browser ondersteunt geen WebGL');
   s.hide(); expect(root.textContent).toBe('');
 });

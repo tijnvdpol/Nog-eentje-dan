@@ -25,3 +25,7 @@ it('mute survives a broken localStorage', () => {
   const e = AudioEngine.create({ localStorage: bad } as unknown as Window);
   expect(() => e.setMuted(true)).not.toThrow(); expect(e.muted).toBe(true);
 });
+it('setVolume never throws on a silent engine and ignores junk', () => {
+  const e = AudioEngine.create({ ...window, AudioContext: undefined, localStorage: window.localStorage } as unknown as Window);
+  expect(() => { e.setVolume(0.4); e.setVolume(5); e.setVolume(Number.NaN); e.setMuted(true); e.setVolume(0.2); }).not.toThrow();
+});

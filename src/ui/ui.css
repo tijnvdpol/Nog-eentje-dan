@@ -35,3 +35,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-f
 #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 49; }
 #flash.on { animation: flash-fade 0.3s ease-out; }
 @keyframes flash-fade { from { opacity: 0.8; } to { opacity: 0; } }
+
+.screen--start { background: #0007; }
+.screen button + button { margin-left: 10px; background: #3a3d4a; color: #fff; }
+.screen__link { display: block; margin-top: 16px; color: #66e0ff; text-decoration: underline; cursor: pointer; }
+.settings__row { display: flex; align-items: center; gap: 12px; margin: 14px 0; justify-content: center; }
+.settings__row output { min-width: 3.5ch; text-align: right; }

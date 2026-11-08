@@ -28,6 +28,10 @@ import { PlayerCar } from './vehicle/PlayerCar';
 import { buildCity } from './world/CityBuilder';
 import { buildSpeedCameras } from './world/SpeedCameraView';
 import { Flash } from './ui/Flash';
+import { applyReducedMotion, loadSettings, saveSettings, type Settings } from './settings/settings';
+import { isTouchOnly } from './ui/deviceCheck';
+import { showSettings } from './ui/SettingsScreen';
+import { attractPose } from './render/attractCamera';
 import { buildTankstation } from './world/TankstationView';
 import { buildVillage } from './world/VillageBuilder';
 import { generateVillageLayout } from './world/villageLayout';
@@ -77,6 +81,8 @@ async function startGame(): Promise<void> {
   const probe = document.createElement('canvas');
   if (!probe.getContext('webgl2')) { screens.showWebGLError(); return; }
 
+  if (isTouchOnly(window.matchMedia?.bind(window))) await new Promise<void>((go) => screens.showMobile(go));
+
   screens.showLoading(0);
   await RAPIER.init();
   screens.showLoading(0.33);
@@ -116,6 +122,9 @@ async function startGame(): Promise<void> {
   const cupBtn = el<HTMLButtonElement>('cupholder');
   const rng = mulberry32((Date.now() & 0xffffffff) >>> 0);
 
+  const settingsStore = ((): Storage | null => { try { return window.localStorage; } catch { return null; } })();
+  let settings: Settings = loadSettings(settingsStore);
+  let menuTime = 0;
   let session = new GameSession();
   let phone: Phone | null = null;
   const sim = new Simulation({ world, graph, car, trafficView, pedView, rng, bus, taskDefs, postIds: new Set(posts.map((p) => p.id)) });
@@ -135,6 +144,7 @@ async function startGame(): Promise<void> {
   void audio.loadOverrides();
   /** Every phone notification pings. */
   const notify = (from: string, text: string) => { if (!phone) return; phone.notify(from, text); audio.play('ping'); };
+  audio.setVolume(settings.volume / 100);
   let blackout = new BlackoutTimer();
   let phase: Phase = 'menu';
   let introTimers: number[] = [];
@@ -217,6 +227,8 @@ async function startGame(): Promise<void> {
     loop.reset();
     screens.hide();
     phase = 'playing';
+    canvas.style.filter = '';
+    cockpit.setVisible(true);
     void audio.resume();
     INTRO.forEach(([from, text], i) => introTimers.push(window.setTimeout(() => {
       notify(from, text);
@@ -225,11 +237,19 @@ async function startGame(): Promise<void> {
     }, 1000 + i * 4000)));
   }
 
+  function openSettings(onClose: () => void): void {
+    showSettings(el('screens'), settings, (s) => { settings = s; saveSettings(settingsStore, s); audio.setVolume(s.volume / 100); }, onClose);
+  }
+  function showStartScreen(): void {
+    screens.showStart({ best: highscore.getBest(), onStart: newRun, onSettings: () => openSettings(showStartScreen) });
+  }
+  function showPauseScreen(): void { screens.showPause(resume, () => openSettings(showPauseScreen)); }
+
   function pause(): void {
     if (phase !== 'playing') return;
     phase = 'paused';
     audio.suspend();
-    screens.showPause(resume);
+    showPauseScreen();
   }
   function resume(): void {
     if (phase !== 'paused') return;
@@ -309,7 +329,7 @@ async function startGame(): Promise<void> {
       input.consumePressed('pause'); input.consumePressed('togglePhone'); input.consumePressed('drink');
     }
 
-    const fx = drunkEffects(session.promille);
+    const fx = applyReducedMotion(drunkEffects(session.promille), settings.reducedMotion);
     if (phase === 'playing') {
       const steps = loop.advance(frameDt);
       const drive = input.drive();
@@ -324,11 +344,21 @@ async function startGame(): Promise<void> {
     }
 
     // camera follows the car (driver sits on the left)
-    const { x, z, heading } = car.state;
-    const fx_ = Math.sin(heading), fz_ = Math.cos(heading);
-    renderer.camera.position.set(x + fx_ * 0.2 + fz_ * 0.35, 1.2, z + fz_ * 0.2 - fx_ * 0.35);
-    renderer.camera.rotation.set(0, heading + Math.PI, 0);
-    cockpit.update(sim.lastSteer, session.drinkProgress);
+    if (phase === 'menu') {
+      // start screen: a blurred camera floats around the city; no traffic or player updates
+      menuTime += frameDt;
+      const p = attractPose(menuTime);
+      renderer.camera.position.set(p.x, p.y, p.z);
+      renderer.camera.lookAt(0, 0, 0);
+      canvas.style.filter = `blur(${CONFIG.attract.blurPx}px)`;
+      cockpit.setVisible(false);
+    } else {
+      const { x, z, heading } = car.state;
+      const fx_ = Math.sin(heading), fz_ = Math.cos(heading);
+      renderer.camera.position.set(x + fx_ * 0.2 + fz_ * 0.35, 1.2, z + fz_ * 0.2 - fx_ * 0.35);
+      renderer.camera.rotation.set(0, heading + Math.PI, 0);
+      cockpit.update(sim.lastSteer, session.drinkProgress);
+    }
     signalView.update(sim.timeSec);
     post.apply(phase === 'playing' || phase === 'paused' ? fx : drunkEffects(0), sim.timeSec);
     if (debug) renderer.gl.info.reset();
@@ -352,7 +382,7 @@ async function startGame(): Promise<void> {
   }
 
   hud.reset();
-  screens.showStart(newRun);
+  showStartScreen();
   requestAnimationFrame(frame);
   (window as unknown as { __nogEentjeDan?: unknown }).__nogEentjeDan = debug ? { get session() { return session; }, car, sim, audio } : undefined;
 }

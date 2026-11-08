@@ -20,6 +20,7 @@ type AudioCtor = new () => AudioContext;
  */
 export class AudioEngine {
   muted: boolean;
+  private volume = 1;
   private master: GainNode | null = null;
   private drunk: BiquadFilterNode | null = null;
   private engineNodes: { oscs: OscillatorNode[]; gain: GainNode } | null = null;
@@ -34,7 +35,7 @@ export class AudioEngine {
     if (!ctx) return;
     try {
       this.master = ctx.createGain();
-      this.master.gain.value = this.muted ? 0 : 1;
+      this.master.gain.value = this.muted ? 0 : this.volume;
       this.drunk = ctx.createBiquadFilter();
       this.drunk.type = 'lowpass';
       this.drunk.frequency.value = lowpassCutoffHz(0);
@@ -67,7 +68,13 @@ export class AudioEngine {
   setMuted(m: boolean): void {
     this.muted = m;
     try { this.storage?.setItem(MUTE_KEY, m ? '1' : '0'); } catch { /* storage blocked */ }
-    if (this.master && this.ctx) this.master.gain.setTargetAtTime(m ? 0 : 1, this.ctx.currentTime, SMOOTH);
+    if (this.master && this.ctx) this.master.gain.setTargetAtTime(m ? 0 : this.volume, this.ctx.currentTime, SMOOTH);
+  }
+
+  /** Master volume 0..1 (settings screen); a silent engine just remembers it. */
+  setVolume(v01: number): void {
+    this.volume = Math.max(0, Math.min(1, Number.isFinite(v01) ? v01 : 1));
+    if (this.master && this.ctx && !this.muted) this.master.gain.setTargetAtTime(this.volume, this.ctx.currentTime, SMOOTH);
   }
 
   update(s: { speedKmh: number; slipping: boolean; promille: number; timeSec: number }): void {

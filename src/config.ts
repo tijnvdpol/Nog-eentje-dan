@@ -26,5 +26,7 @@ export const CONFIG = {
   tankstation: { forecourt: { cx: 2460, cz: 18, w: 30, d: 20 } },
   speedCamera: { toleranceKmh: 4, rearmDistM: 50, maxHeadingDeg: 60, lateralMarginM: 2, flashSec: 0.3, sideOffsetM: 2 },
   fine: { baseEur: 50, eurPerKmh: 8, basePenalty: 50, penaltyPerKmh: 5, timeLimitSec: 12, surchargeEur: 50 },
+  settings: { defaultVolume: 80, reducedMotionFactor: 0.5, storageKey: 'nog-eentje-dan:settings' },
+  attract: { radiusM: 250, heightM: 60, periodSec: 90, blurPx: 4 },
   audio: { lowpassMaxHz: 20000, lowpassMinHz: 800, wobbleFromPromille: 1.3, wobbleMaxCents: 30, gearBandKmh: 30, maxGear: 4, tiresMinKmh: 20 },
 } as const;

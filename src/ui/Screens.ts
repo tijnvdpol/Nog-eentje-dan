@@ -3,7 +3,7 @@ import type { OverReason } from '../state/GameSession';
 const CONTROLS: [string, string][] = [
   ['W / ↑', 'Gas'], ['S / ↓', 'Remmen / achteruit'], ['A D / ← →', 'Sturen'], ['Spatie', 'Handrem'],
   ['Q', 'Telefoon pakken / wegleggen'], ['Dubbelklik', 'Post liken (telefoon omhoog)'],
-  ['Muiswiel', 'Feed scrollen (telefoon omhoog)'], ['E', 'Biertje drinken'], ['Esc', 'Pauze'],
+  ['Muiswiel', 'Feed scrollen (telefoon omhoog)'], ['E', 'Biertje drinken'], ['Esc', 'Pauze'], ['M', 'Geluid aan/uit'],
 ];
 
 const REASONS: Record<OverReason, string> = {
@@ -14,8 +14,8 @@ const REASONS: Record<OverReason, string> = {
 export class Screens {
   constructor(private root: HTMLElement) {}
 
-  private show(html: string): HTMLElement {
-    this.root.innerHTML = `<div class="screen"><div class="screen__box">${html}</div></div>`;
+  private show(html: string, cls = ''): HTMLElement {
+    this.root.innerHTML = `<div class="screen ${cls}"><div class="screen__box">${html}</div></div>`;
     return this.root.querySelector('.screen__box') as HTMLElement;
   }
 
@@ -34,15 +34,30 @@ export class Screens {
     this.show('<h2>Oeps</h2><p>Je browser ondersteunt geen WebGL, dus de game kan hier niet draaien. Probeer een recente versie van Chrome, Edge of Firefox.</p>');
   }
 
-  showStart(onStart: () => void): void {
+  showStart(o: { best: number; onStart: () => void; onSettings: () => void }): void {
     const rows = CONTROLS.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
-    const box = this.show(`<h1>Nog Eentje Dan</h1><p>Satire. Dit is precies waarom je dit nooit in het echt doet.</p><table>${rows}</table>`);
-    this.button(box, 'Start', onStart);
+    const box = this.show(
+      `<h1>Nog Eentje Dan</h1><p>Satire. Dit is precies waarom je dit nooit in het echt doet.</p>` +
+      (o.best > 0 ? `<p>Highscore: <b>${o.best}</b></p>` : '') + `<table>${rows}</table>`, 'screen--start');
+    this.button(box, 'Start', o.onStart);
+    this.button(box, 'Instellingen', o.onSettings);
   }
 
-  showPause(onResume: () => void): void {
+  /** Shown on touch-only devices before the game loads; "Toch proberen" continues anyway. */
+  showMobile(onTry: () => void): void {
+    const box = this.show(
+      '<h1>Nog Eentje Dan</h1><p>Nog Eentje Dan speel je op een laptop. Je hebt een toetsenbord nodig 🍻</p>' +
+      '<p>Satire. Dit is precies waarom je dit nooit in het echt doet.</p>');
+    const link = document.createElement('a');
+    link.href = '#'; link.className = 'screen__link'; link.textContent = 'Toch proberen';
+    link.addEventListener('click', (e) => { e.preventDefault(); onTry(); });
+    box.appendChild(link);
+  }
+
+  showPause(onResume: () => void, onSettings: () => void): void {
     const box = this.show('<h2>Pauze</h2>');
     this.button(box, 'Verder rijden', onResume);
+    this.button(box, 'Instellingen', onSettings);
   }
 
   showGameOver(

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 export class Cockpit {
+  private root: THREE.Group;
   private wheel: THREE.Group;
   private can: THREE.Mesh;
   private canRest = new THREE.Vector3(0.45, -0.36, -0.7);
@@ -53,8 +54,11 @@ export class Cockpit {
     );
     this.can.position.copy(this.canRest);
     g.add(this.can);
+    this.root = g;
     camera.add(g);
   }
+
+  setVisible(v: boolean): void { this.root.visible = v; }
 
   /** World position of the can, for placing the DOM hotspot. */
   canWorldPosition(target: THREE.Vector3): THREE.Vector3 { return this.can.getWorldPosition(target); }
