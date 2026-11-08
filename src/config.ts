@@ -3,7 +3,8 @@ export type Zone = 'city' | 'nweg' | 'snelweg';
 export const CONFIG = {
   like: { basePoints: 10, comboWindowSec: 2, comboStep: 0.25, comboMax: 3 },
   beer: { promillePerBeer: 0.3, decayPerSec: 0.005, drinkDurationSec: 1.5,
-          steerFactorWhileDrinking: 0.5, multiplierPerBeer: 0.5, passOutAbove: 3.0 },
+          steerFactorWhileDrinking: 0.5, multiplierPerBeer: 0.5, passOutAbove: 3.0,
+          stockMax: 6, refillRadiusM: 15, refillMaxKmh: 5, refillHoldSec: 2, emptyNoticeCooldownSec: 10, iconAtOrBelow: 2 },
   zone: { city: 1, nweg: 1.25, snelweg: 1.5, minSpeedFraction: 0.5 },
   damage: { thresholdKmh: 5, factor: 0.8, maxPerHit: 60, crackLevels: [25, 50, 75] },
   feed: { minGapBeforeRepeat: 20 },
@@ -12,4 +13,13 @@ export const CONFIG = {
   phone: { coverFraction: 0.4 },
   loop: { fixedDt: 1 / 60, maxFrameDt: 0.25 },
   blackout: { durationSec: 0.5 },
+  signals: { greenSec: 8, orangeSec: 2, allRedSec: 1, offsetStepSec: 4, stopLineSignalM: 12.5, stopLineM: 6, clearAfterM: 8, orangeBrake: 6 },
+  ring: { exitProb: 0.25, laneChangeProb: 0.2, laneChangeFreeM: 25, laneChangeSec: 1.5, mergeBehindSec: 2.5, mergeAheadM: 20, mergeZoneM: 5 },
+  horn: { afterSec: 2, cooldownSec: 10 },
+  redLight: { basePoints: 25, boxHalfM: 8, rearmM: 15 },
+  peds: { radiusM: 150, max: 12, spawnPerSec: 0.2, carClearM: 25, dodgeTtcSec: 1.0, dodgeLateralM: 1.5, dodgeSec: 0.4, dodgeDistM: 3,
+          nearMissM: 2, nearMissPenalty: 25, crossingWidthM: 3, crossingFromNodeM: 10,
+          speeds: { jogger: 2.5, student: 1.0, oma: 0.6 }, mix: { jogger: 0.4, student: 0.4, oma: 0.2 } },
+  tasks: { firstDelaySec: 20, gapMinSec: 45, gapMaxSec: 60, destMinDistM: 150, arriveRadiusM: 15, arriveMaxKmh: 20, likeWithinPosts: 10 },
+  audio: { lowpassMaxHz: 20000, lowpassMinHz: 800, wobbleFromPromille: 1.3, wobbleMaxCents: 30, gearBandKmh: 30, maxGear: 4, tiresMinKmh: 20 },
 } as const;
