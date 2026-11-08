@@ -26,5 +26,10 @@ export class ComboTracker {
     return this.combo;
   }
   get current(): number { return this.combo; }
+  /** The combo as it stands at `timeSec`: back to 1 once the window since the last like has passed. */
+  currentAt(timeSec: number): number {
+    if (this.last === null || timeSec - this.last > CONFIG.like.comboWindowSec + 1e-9) return 1;
+    return this.combo;
+  }
   reset(): void { this.last = null; this.combo = 1; }
 }

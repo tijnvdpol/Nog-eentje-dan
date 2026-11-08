@@ -113,6 +113,8 @@ Satirische statistieken, bijvoorbeeld:
 { "id": "p001", "account": "@SnelleSander", "avatar": "avatars/sander.png",
   "type": "photo", "media": "posts/p001.jpg", "caption": "...", "tags": ["auto"] }
 ```
+`avatar` is óf een pad (relatief aan `content/`) naar een afbeelding, óf tekst. Eindigt de waarde op `.png`, `.jpg`/`.jpeg`, `.svg` of `.webp` (hoofdletters maken niet uit), dan toont de feed een rond `<img>`; anders wordt de waarde als tekst getoond, bedoeld voor een emoji (bijv. `"avatar": "🍺"`).
+
 `content/tasks.json`, één object per opdracht:
 ```json
 { "id": "t001", "type": "chat", "from": "Mama", "text": "Ben je al onderweg?",

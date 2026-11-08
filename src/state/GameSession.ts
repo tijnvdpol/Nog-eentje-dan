@@ -23,6 +23,7 @@ export class GameSession {
   get damage(): number { return this.damageModel.value; }
   get promille(): number { return this.promilleModel.value; }
   get combo(): number { return this.comboTracker.current; }
+  comboAt(timeSec: number): number { return this.comboTracker.currentAt(timeSec); }
   get steerFactor(): number { return this.promilleModel.steerFactor; }
   get drinkProgress(): number | null { return this.promilleModel.drinkProgress; }
 

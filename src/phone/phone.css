@@ -1,11 +1,11 @@
 .phone { position: fixed; z-index: 20; right: 24px; transition: transform .35s ease, bottom .35s ease, width .35s ease, height .35s ease; pointer-events: none; }
 .phone__frame { width: 100%; height: 100%; background: #111; border: 6px solid #222; border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; color: #fff; font-family: system-ui, sans-serif; box-shadow: 0 10px 40px #000a; pointer-events: auto; }
 .phone--down { bottom: -40px; width: 180px; height: 320px; transform: rotate(-4deg); opacity: .9; }
-.phone--up { bottom: 5vh; width: min(calc(100vw * 0.28), 360px); height: calc(100vh * 0.9); max-height: 760px; transform: perspective(900px) rotateY(-8deg) rotateX(3deg); }
+.phone--up { bottom: 5vh; width: calc(100vw * var(--phone-cover, 0.4)); max-width: calc(100vh * 0.9 * 0.75); height: calc(100vh * 0.9); transform: perspective(900px) rotateY(-8deg) rotateX(3deg); }
 .phone__header { padding: 10px 14px; font-weight: 800; font-size: 20px; letter-spacing: .5px; background: linear-gradient(90deg,#ff3d81,#ff9a3d); }
 .phone__stories { display: flex; gap: 8px; padding: 8px; overflow: hidden; background: #181818; }
 .phone__story { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ff3d81; display: grid; place-items: center; font-size: 20px; }
-.phone__feed { flex: 1; overflow-y: auto; overscroll-behavior: contain; filter: blur(var(--phone-blur, 0px)); scrollbar-width: none; }
+.phone__feed { flex: 1; overflow-y: auto; overscroll-behavior: contain; overflow-anchor: none; filter: blur(var(--phone-blur, 0px)); scrollbar-width: none; }
 .phone__feed::-webkit-scrollbar { display: none; }
 .phone--down .phone__feed { overflow: hidden; }
 .phone { --phone-sway: 0; }
@@ -14,6 +14,7 @@
 .post { border-bottom: 8px solid #000; user-select: none; }
 .post__head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; font-size: 14px; font-weight: 600; text-shadow: var(--phone-double, 0px) 0 0 #ff2d55aa, calc(var(--phone-double, 0px) * -1) 0 0 #2d9bffaa; }
 .post__avatar { font-size: 20px; }
+.post__avatar img { display: block; width: 28px; height: 28px; border-radius: 50%; object-fit: cover; background: #333; }
 .post__ad { margin-left: auto; font-size: 11px; opacity: .7; border: 1px solid #fff6; padding: 1px 6px; border-radius: 8px; }
 .post__mediawrap { position: relative; }
 .post__media { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #222; }

@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
 import { beforeEach, expect, it } from 'vitest';
+import { CONFIG } from '../../src/config';
 import { EventBus, type GameEvents } from '../../src/core/events';
 import { drunkEffects } from '../../src/drunk/effects';
 import { Phone, type Post } from '../../src/phone/Phone';
@@ -57,4 +59,61 @@ it('applyEffects sets CSS variables', () => {
 });
 it('notify shows a banner also when down', () => {
   phone.setUp(false); phone.notify('Mama', 'Waar ben je?'); expect(root.querySelector('.phone__banner')?.textContent).toContain('Mama');
+});
+it('prunes posts far above the viewport without moving what is on screen', () => {
+  // jsdom has no layout: give every post a fixed height and stack them in DOM order.
+  const H = 500;
+  const proto = HTMLElement.prototype;
+  const saved = ['offsetTop', 'offsetHeight'].map((k) => [k, Object.getOwnPropertyDescriptor(proto, k)!] as const);
+  Object.defineProperty(proto, 'offsetHeight', { configurable: true, get(this: HTMLElement) { return this.matches('article.post') ? H : 0; } });
+  Object.defineProperty(proto, 'offsetTop', { configurable: true, get(this: HTMLElement) {
+    return this.matches('article.post') ? articles().indexOf(this) * H : 0;
+  } });
+  Object.defineProperty(feedEl, 'scrollHeight', { configurable: true, get: () => articles().length * H });
+  Object.defineProperty(feedEl, 'clientHeight', { configurable: true, value: 600 });
+  const above = () => articles().filter((a) => a.offsetTop + a.offsetHeight <= feedEl.scrollTop).length;
+  try {
+    phone.setUp(true);
+    let maxAbove = 0;
+    for (let step = 0; step < 200; step++) {
+      feedEl.scrollTop += 250;
+      const anchor = articles().find((a) => a.offsetTop + a.offsetHeight > feedEl.scrollTop)!;
+      const rel = anchor.offsetTop - feedEl.scrollTop;
+      feedEl.dispatchEvent(new Event('scroll'));
+      expect(anchor.isConnected).toBe(true);
+      expect(anchor.offsetTop - feedEl.scrollTop).toBe(rel);
+      maxAbove = Math.max(maxAbove, above());
+    }
+    expect(maxAbove).toBeLessThanOrEqual(31);
+    expect(above()).toBeGreaterThanOrEqual(25);
+  } finally {
+    for (const [k, d] of saved) Object.defineProperty(proto, k, d);
+  }
+});
+it('phone size when up comes from CONFIG.phone.coverFraction', () => {
+  expect(root.style.getPropertyValue('--phone-cover')).toBe(String(CONFIG.phone.coverFraction));
+  const css = readFileSync('src/phone/phone.css', 'utf8');
+  const upRule = css.match(/\.phone--up\s*\{([^}]*)\}/)![1];
+  expect(upRule).toMatch(/width:[^;]*var\(--phone-cover\b/);
+  expect(upRule).not.toMatch(/0\.28|360px/);
+});
+it('avatar ending in an image extension renders an <img>, anything else renders as text', () => {
+  const kinds: [string, boolean][] = [
+    ['avatars/sander.png', true], ['avatars/a.jpg', true], ['avatars/a.svg', true], ['avatars/a.webp', true],
+    ['avatars/A.PNG', true], ['🍺', false], ['png', false], ['😎.gif', false],
+  ];
+  for (const [avatar, isImg] of kinds) {
+    document.body.innerHTML = '<div id="phone"></div>'; root = document.getElementById('phone')!;
+    new Phone(root, posts.map((p) => ({ ...p, avatar })), new EventBus<GameEvents>(), mulberry32(4));
+    const av = root.querySelector('.post__avatar')!;
+    const img = av.querySelector('img') ?? (av.tagName === 'IMG' ? av : null);
+    if (isImg) {
+      expect(img, avatar).not.toBeNull();
+      expect(img!.getAttribute('src')).toBe(`content/${avatar}`);
+      expect(av.textContent).toBe('');
+    } else {
+      expect(img, avatar).toBeNull();
+      expect(av.textContent).toBe(avatar);
+    }
+  }
 });

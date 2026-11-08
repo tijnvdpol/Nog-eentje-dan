@@ -25,3 +25,11 @@ it('likePoints rounds the product', () => {
   expect(likePoints(1, 1, 1.5)).toBe(15);
   expect(likePoints(1.25, 1.5, 1.5)).toBe(28);
 });
+it('combo reads as ×1 once the 2s window has passed, without a new like', () => {
+  const c = new ComboTracker();
+  c.registerLike(0); c.registerLike(1); c.registerLike(2);
+  expect(c.currentAt(2)).toBe(1.5);
+  expect(c.currentAt(4)).toBe(1.5);
+  expect(c.currentAt(4.01)).toBe(1);
+  expect(new ComboTracker().currentAt(10)).toBe(1);
+});

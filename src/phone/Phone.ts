@@ -11,7 +11,11 @@ export interface Post {
 
 const BATCH = 8;
 const NEAR_BOTTOM_PX = 600;
+/** Posts kept above the first visible post; older ones are removed from the DOM. */
+const KEEP_ABOVE = 30;
 const BANNER_MS = 4000;
+/** An avatar is an image path when it ends in one of these; otherwise it is text (an emoji). */
+const AVATAR_IMAGE = /\.(png|jpe?g|svg|webp)$/i;
 
 export class Phone {
   private up = false;
@@ -27,6 +31,8 @@ export class Phone {
 
     root.classList.remove('phone--up');
     root.classList.add('phone', 'phone--down');
+    // Fraction of the screen width the phone covers when up (see .phone--up in phone.css).
+    root.style.setProperty('--phone-cover', String(CONFIG.phone.coverFraction));
     root.innerHTML = `
       <div class="phone__frame">
         <header class="phone__header"><span class="phone__logo">Swiep</span></header>
@@ -93,6 +99,7 @@ export class Phone {
 
   private onScroll = (): void => {
     const f = this.feed;
+    this.pruneAbove();
     if (f.scrollTop + f.clientHeight > f.scrollHeight - NEAR_BOTTOM_PX) this.appendBatch();
   };
 
@@ -107,6 +114,23 @@ export class Phone {
     this.bus.emit('like', { postId: id });
   };
 
+  /**
+   * Removes posts more than KEEP_ABOVE posts above the first visible one, and shifts
+   * scrollTop by the removed height so the visible content stays exactly in place.
+   * (CSS overflow-anchor is off on the feed, so the browser does not also adjust.)
+   */
+  private pruneAbove(): void {
+    const posts = Array.from(this.feed.querySelectorAll<HTMLElement>('article.post'));
+    if (posts.length <= KEEP_ABOVE) return;
+    const top = this.feed.scrollTop, base = posts[0].offsetTop;
+    const firstVisible = posts.findIndex((a) => a.offsetTop - base + a.offsetHeight > top);
+    const excess = (firstVisible === -1 ? posts.length : firstVisible) - KEEP_ABOVE;
+    if (excess <= 0) return;
+    const removedPx = posts[excess].offsetTop - base;
+    for (let i = 0; i < excess; i++) posts[i].remove();
+    this.feed.scrollTop = top - removedPx;
+  }
+
   private appendBatch(): void {
     for (let i = 0; i < BATCH; i++) this.feed.appendChild(this.renderPost(this.byId.get(this.shuffler.next())!));
   }
@@ -118,7 +142,14 @@ export class Phone {
     if (this.liked.has(p.id)) a.classList.add('post--liked');
 
     const head = document.createElement('div'); head.className = 'post__head';
-    const av = document.createElement('span'); av.className = 'post__avatar'; av.textContent = p.avatar;
+    const av = document.createElement('span'); av.className = 'post__avatar';
+    if (AVATAR_IMAGE.test(p.avatar)) {
+      const img = document.createElement('img');
+      img.src = `content/${p.avatar}`; img.alt = ''; img.draggable = false;
+      av.appendChild(img);
+    } else {
+      av.textContent = p.avatar;
+    }
     const name = document.createElement('span'); name.className = 'post__account'; name.textContent = p.account;
     head.append(av, name);
     if (p.type === 'ad') {

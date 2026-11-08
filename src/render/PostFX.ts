@@ -6,6 +6,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
 import type { DrunkEffects } from '../drunk/effects';
+import { activePostPasses } from './postPasses';
 
 const VignetteBlurShader = {
   uniforms: { tDiffuse: { value: null as THREE.Texture | null }, vignette: { value: 0 }, blur: { value: 0 } },
@@ -30,8 +31,9 @@ export class PostFX {
   private after: AfterimagePass;
   private rgb: ShaderPass;
   private vig: ShaderPass;
+  private bypass = false;
 
-  constructor(private renderer: THREE.WebGLRenderer, scene: THREE.Scene, private camera: THREE.Camera) {
+  constructor(private renderer: THREE.WebGLRenderer, private scene: THREE.Scene, private camera: THREE.Camera) {
     this.composer = new EffectComposer(renderer);
     this.composer.addPass(new RenderPass(scene, camera));
     this.after = new AfterimagePass(0);
@@ -47,6 +49,12 @@ export class PostFX {
 
   /** Call after the camera pose was set for this frame: adds the drunk sway on top. */
   apply(fx: DrunkEffects, timeSec: number): void {
+    const on = activePostPasses(fx);
+    this.after.enabled = on.afterimage;
+    this.rgb.enabled = on.rgbShift;
+    this.vig.enabled = on.vignetteBlur;
+    // Sober: skip the composer (and its render targets) entirely and draw straight to the canvas.
+    this.bypass = !on.any;
     this.after.damp = fx.afterimage * 0.88;
     this.rgb.uniforms['amount'].value = fx.rgbShift * 0.008;
     this.vig.uniforms['vignette'].value = fx.vignette;
@@ -56,7 +64,10 @@ export class PostFX {
     this.camera.rotation.z += sway * 0.6;
   }
 
-  render(): void { this.composer.render(); }
+  render(): void {
+    if (this.bypass) this.renderer.render(this.scene, this.camera);
+    else this.composer.render();
+  }
 
   resize(w: number, h: number): void {
     this.composer.setSize(w, h);

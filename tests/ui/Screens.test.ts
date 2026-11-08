@@ -36,6 +36,13 @@ it('hud formats with Dutch decimal comma', () => {
   h.showCracks([25, 50]); expect(root.querySelectorAll('.hud__crack').length).toBe(2);
   h.reset(); expect(root.querySelectorAll('.hud__crack').length).toBe(0);
 });
+it('hud shows combo ×1 when the combo has run out', () => {
+  const h = new Hud(root);
+  const base = { score: 0, speedKmh: 0, damage: 0, promille: 0, multiplier: 1 };
+  h.update({ ...base, combo: 1.5 }); expect(root.querySelector('.hud__combo')!.textContent).toBe('combo ×1,5');
+  h.update({ ...base, combo: 1.25 }); expect(root.querySelector('.hud__combo')!.textContent).toBe('combo ×1,25');
+  h.update({ ...base, combo: 1 }); expect(root.querySelector('.hud__combo')!.textContent).toBe('combo ×1');
+});
 it('crackSvg is deterministic and grows with level', () => {
   expect(crackSvg(25, 1)).toBe(crackSvg(25, 1));
   expect(crackSvg(75, 1).length).toBeGreaterThan(crackSvg(25, 1).length);

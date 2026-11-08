@@ -22,3 +22,9 @@ it('tick after game over changes nothing', () => {
   const g = new GameSession(); g.impact(100); g.impact(100); const d = g.stats.distanceM;
   g.tick(1, snelweg); expect(g.stats.distanceM).toBe(d);
 });
+it('comboAt drops back to 1 after the combo window expires', () => {
+  const g = new GameSession(); g.tick(0.1, snelweg);
+  g.like('p1', 1); g.like('p2', 2);
+  expect(g.comboAt(2.5)).toBe(1.25);
+  expect(g.comboAt(4.5)).toBe(1);
+});
