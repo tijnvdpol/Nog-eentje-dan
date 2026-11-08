@@ -27,7 +27,7 @@
 | Gameloop | Vrij rondrijden; punten via de telefoon (likes + opdrachten) |
 | Dronken | Biertje pakken tijdens het rijden (cupholder), verhoogt multiplier én effecten |
 | Game over | Schademeter (100%) of promillage boven 3,0‰ |
-| Feed-content | Alleen eigen content in een parodie-app (werktitel "Scrollr"), geen echte merken |
+| Feed-content | Alleen eigen content in een parodie-app (werktitel "Swiep"), geen echte merken |
 | Highscore | Lokaal; via een interface zodat online (Supabase) later kan |
 | Techniek | Vite + TypeScript + Three.js + Rapier; telefoon als HTML/CSS-overlay |
 
@@ -96,9 +96,9 @@ Satirische statistieken, bijvoorbeeld:
 - gereden afstand en hoogste snelheid;
 - eindscore en lokale highscore, met knop "Nog een rondje".
 
-## 5. Telefoon en de feed-app ("Scrollr")
+## 5. Telefoon en de feed-app ("Swiep")
 
-- **Werktitel:** "Scrollr". Naam en logo zijn een eigen parodie; geen echte merknamen of logo's. De definitieve naam kan op elk moment worden vervangen en blokkeert de bouw niet.
+- **Werktitel:** "Swiep". Naam en logo zijn een eigen parodie; geen echte merknamen of logo's. De definitieve naam kan op elk moment worden vervangen en blokkeert de bouw niet.
 - **Opmaak:** stories-balk bovenaan, verticale posts (avatar, accountnaam, afbeelding of korte video, tekst, aantal likes), hartje-animatie bij liken.
 - **Meldingen:** banner bovenaan, ook zichtbaar als de telefoon omlaag is (groepsapp "Feestje 🍻", mama, Tikkie, flitspaal-"boete" in fase 3).
 - **Chat-scherm:** opent bij een chat-opdracht en toont het bericht met 3 antwoordknoppen.
@@ -179,7 +179,7 @@ Alle effecten worden berekend uit één getal: het huidige promillage.
 | `traffic/` | verkeer, stoplichten, voetgangers | `world` |
 | `drunk/` | promillage → effectwaarden (beeld, besturing, telefoon, geluid) | `state` |
 | `render/` | renderer, camera, post-processing | `drunk` |
-| `phone/` | Scrollr-app (feed, meldingen, chat) in HTML/CSS | `state`, content |
+| `phone/` | Swiep-app (feed, meldingen, chat) in HTML/CSS | `state`, content |
 | `tasks/` | opdrachten plannen, timers, bestemmingspijl, afronden | `state`, `world` |
 | `scoring/` | likes, combo, multipliers, puntenformule | `state` |
 | `ui/` | dashboard, start-, pauze- en eindscherm | `state` |
