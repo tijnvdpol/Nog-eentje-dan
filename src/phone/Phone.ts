@@ -11,6 +11,8 @@ export interface Post {
 
 const BATCH = 8;
 const NEAR_BOTTOM_PX = 600;
+/** Posts kept above the first visible post; older ones are removed from the DOM. */
+const KEEP_ABOVE = 30;
 const BANNER_MS = 4000;
 
 export class Phone {
@@ -93,6 +95,7 @@ export class Phone {
 
   private onScroll = (): void => {
     const f = this.feed;
+    this.pruneAbove();
     if (f.scrollTop + f.clientHeight > f.scrollHeight - NEAR_BOTTOM_PX) this.appendBatch();
   };
 
@@ -106,6 +109,23 @@ export class Phone {
     article.classList.add('post--liked');
     this.bus.emit('like', { postId: id });
   };
+
+  /**
+   * Removes posts more than KEEP_ABOVE posts above the first visible one, and shifts
+   * scrollTop by the removed height so the visible content stays exactly in place.
+   * (CSS overflow-anchor is off on the feed, so the browser does not also adjust.)
+   */
+  private pruneAbove(): void {
+    const posts = Array.from(this.feed.querySelectorAll<HTMLElement>('article.post'));
+    if (posts.length <= KEEP_ABOVE) return;
+    const top = this.feed.scrollTop, base = posts[0].offsetTop;
+    const firstVisible = posts.findIndex((a) => a.offsetTop - base + a.offsetHeight > top);
+    const excess = (firstVisible === -1 ? posts.length : firstVisible) - KEEP_ABOVE;
+    if (excess <= 0) return;
+    const removedPx = posts[excess].offsetTop - base;
+    for (let i = 0; i < excess; i++) posts[i].remove();
+    this.feed.scrollTop = top - removedPx;
+  }
 
   private appendBatch(): void {
     for (let i = 0; i < BATCH; i++) this.feed.appendChild(this.renderPost(this.byId.get(this.shuffler.next())!));

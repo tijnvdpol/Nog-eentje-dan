@@ -58,3 +58,33 @@ it('applyEffects sets CSS variables', () => {
 it('notify shows a banner also when down', () => {
   phone.setUp(false); phone.notify('Mama', 'Waar ben je?'); expect(root.querySelector('.phone__banner')?.textContent).toContain('Mama');
 });
+it('prunes posts far above the viewport without moving what is on screen', () => {
+  // jsdom has no layout: give every post a fixed height and stack them in DOM order.
+  const H = 500;
+  const proto = HTMLElement.prototype;
+  const saved = ['offsetTop', 'offsetHeight'].map((k) => [k, Object.getOwnPropertyDescriptor(proto, k)!] as const);
+  Object.defineProperty(proto, 'offsetHeight', { configurable: true, get(this: HTMLElement) { return this.matches('article.post') ? H : 0; } });
+  Object.defineProperty(proto, 'offsetTop', { configurable: true, get(this: HTMLElement) {
+    return this.matches('article.post') ? articles().indexOf(this) * H : 0;
+  } });
+  Object.defineProperty(feedEl, 'scrollHeight', { configurable: true, get: () => articles().length * H });
+  Object.defineProperty(feedEl, 'clientHeight', { configurable: true, value: 600 });
+  const above = () => articles().filter((a) => a.offsetTop + a.offsetHeight <= feedEl.scrollTop).length;
+  try {
+    phone.setUp(true);
+    let maxAbove = 0;
+    for (let step = 0; step < 200; step++) {
+      feedEl.scrollTop += 250;
+      const anchor = articles().find((a) => a.offsetTop + a.offsetHeight > feedEl.scrollTop)!;
+      const rel = anchor.offsetTop - feedEl.scrollTop;
+      feedEl.dispatchEvent(new Event('scroll'));
+      expect(anchor.isConnected).toBe(true);
+      expect(anchor.offsetTop - feedEl.scrollTop).toBe(rel);
+      maxAbove = Math.max(maxAbove, above());
+    }
+    expect(maxAbove).toBeLessThanOrEqual(31);
+    expect(above()).toBeGreaterThanOrEqual(25);
+  } finally {
+    for (const [k, d] of saved) Object.defineProperty(proto, k, d);
+  }
+});

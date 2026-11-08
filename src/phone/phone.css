@@ -5,7 +5,7 @@
 .phone__header { padding: 10px 14px; font-weight: 800; font-size: 20px; letter-spacing: .5px; background: linear-gradient(90deg,#ff3d81,#ff9a3d); }
 .phone__stories { display: flex; gap: 8px; padding: 8px; overflow: hidden; background: #181818; }
 .phone__story { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ff3d81; display: grid; place-items: center; font-size: 20px; }
-.phone__feed { flex: 1; overflow-y: auto; overscroll-behavior: contain; filter: blur(var(--phone-blur, 0px)); scrollbar-width: none; }
+.phone__feed { flex: 1; overflow-y: auto; overscroll-behavior: contain; overflow-anchor: none; filter: blur(var(--phone-blur, 0px)); scrollbar-width: none; }
 .phone__feed::-webkit-scrollbar { display: none; }
 .phone--down .phone__feed { overflow: hidden; }
 .phone { --phone-sway: 0; }
