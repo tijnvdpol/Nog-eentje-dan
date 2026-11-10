@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "gen:models": "tsx scripts/generate-models.ts",
     "gen:roads": "tsx scripts/generate-roads.ts",
     "gen:media": "tsx scripts/generate-placeholder-media.ts",
     "gen:og": "tsx scripts/generate-og.ts"
@@ -17,6 +18,9 @@
     "three": "^0.187.0"
   },
   "devDependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
     "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^26.6.6",
     "@types/three": "^0.187.0",

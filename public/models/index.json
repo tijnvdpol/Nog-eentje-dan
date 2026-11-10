@@ -1,0 +1,214 @@
+{
+  "car.hatchback": {
+    "file": "car.hatchback.glb",
+    "size": {
+      "w": 1.3,
+      "d": 2.85,
+      "h": 1.1
+    },
+    "target": {
+      "w": 1.8,
+      "d": 4.4
+    }
+  },
+  "car.sedan": {
+    "file": "car.sedan.glb",
+    "size": {
+      "w": 1.5,
+      "d": 2.55,
+      "h": 1.3
+    },
+    "target": {
+      "w": 1.8,
+      "d": 4.4
+    }
+  },
+  "car.suv": {
+    "file": "car.suv.glb",
+    "size": {
+      "w": 1.5,
+      "d": 2.7,
+      "h": 1.3
+    },
+    "target": {
+      "w": 1.8,
+      "d": 4.4
+    }
+  },
+  "car.van": {
+    "file": "car.van.glb",
+    "size": {
+      "w": 1.5,
+      "d": 2.75,
+      "h": 1.35
+    },
+    "target": {
+      "w": 1.8,
+      "d": 4.4
+    }
+  },
+  "car.delivery": {
+    "file": "car.delivery.glb",
+    "size": {
+      "w": 1.5,
+      "d": 3.25,
+      "h": 1.65
+    },
+    "target": {
+      "w": 1.8,
+      "d": 4.4
+    }
+  },
+  "car.taxi": {
+    "file": "car.taxi.glb",
+    "size": {
+      "w": 1.5,
+      "d": 2.75,
+      "h": 1.5
+    },
+    "target": {
+      "w": 1.8,
+      "d": 4.4
+    }
+  },
+  "house.a": {
+    "file": "house.a.glb",
+    "size": {
+      "w": 1.3,
+      "d": 1.028,
+      "h": 0.834
+    },
+    "target": {
+      "w": 8,
+      "d": 9
+    }
+  },
+  "house.b": {
+    "file": "house.b.glb",
+    "size": {
+      "w": 1.3,
+      "d": 1.028,
+      "h": 1.138
+    },
+    "target": {
+      "w": 8,
+      "d": 9
+    }
+  },
+  "house.c": {
+    "file": "house.c.glb",
+    "size": {
+      "w": 1.3,
+      "d": 0.916,
+      "h": 0.737
+    },
+    "target": {
+      "w": 8,
+      "d": 9
+    }
+  },
+  "house.d": {
+    "file": "house.d.glb",
+    "size": {
+      "w": 1.286,
+      "d": 1.028,
+      "h": 0.737
+    },
+    "target": {
+      "w": 8,
+      "d": 9
+    }
+  },
+  "prop.fence": {
+    "file": "prop.fence.glb",
+    "size": {
+      "w": 1.275,
+      "d": 0.837,
+      "h": 0.17
+    }
+  },
+  "prop.hedge": {
+    "file": "prop.hedge.glb",
+    "size": {
+      "w": 0.396,
+      "d": 0.396,
+      "h": 0.244
+    }
+  },
+  "prop.awning": {
+    "file": "prop.awning.glb",
+    "size": {
+      "w": 0.4,
+      "d": 0.148,
+      "h": 0.4
+    }
+  },
+  "prop.lamp": {
+    "file": "prop.lamp.glb",
+    "size": {
+      "w": 0.05,
+      "d": 0.238,
+      "h": 0.6
+    },
+    "target": {
+      "h": 6
+    }
+  },
+  "tree.a": {
+    "file": "tree.a.glb",
+    "size": {
+      "w": 0.641,
+      "d": 0.74,
+      "h": 1.226
+    },
+    "target": {
+      "h": 6.5
+    }
+  },
+  "tree.b": {
+    "file": "tree.b.glb",
+    "size": {
+      "w": 0.755,
+      "d": 0.654,
+      "h": 1.708
+    },
+    "target": {
+      "h": 6.5
+    }
+  },
+  "tree.c": {
+    "file": "tree.c.glb",
+    "size": {
+      "w": 0.847,
+      "d": 0.762,
+      "h": 1.332
+    },
+    "target": {
+      "h": 6.5
+    }
+  },
+  "proef.a": {
+    "file": "proef.a.glb",
+    "size": {
+      "w": 1.24,
+      "d": 1.302,
+      "h": 1.68
+    }
+  },
+  "proef.b": {
+    "file": "proef.b.glb",
+    "size": {
+      "w": 1.37,
+      "d": 1.402,
+      "h": 2.27
+    }
+  },
+  "proef.c": {
+    "file": "proef.c.glb",
+    "size": {
+      "w": 0.84,
+      "d": 1.03,
+      "h": 1.693
+    }
+  }
+}
