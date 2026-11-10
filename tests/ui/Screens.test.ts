@@ -63,3 +63,9 @@ it('crackSvg is deterministic and grows with level', () => {
   expect(crackSvg(25, 1)).toBe(crackSvg(25, 1));
   expect(crackSvg(75, 1).length).toBeGreaterThan(crackSvg(25, 1).length);
 });
+
+it('loading screen shows percentage and optional label', () => {
+  s.showLoading(0.5, 'Wereld laden… 3/20');
+  expect(root.innerHTML).toContain('50%'); expect(root.innerHTML).toContain('Wereld laden… 3/20');
+  s.showLoading(1); expect(root.innerHTML).not.toContain('Wereld');
+});

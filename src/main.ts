@@ -25,6 +25,7 @@ import { DestinationArrow } from './ui/DestinationArrow';
 import { Screens } from './ui/Screens';
 import { mulberry32 } from './util/rng';
 import { PlayerCar } from './vehicle/PlayerCar';
+import { loadModelLibrary } from './models/modelLibrary';
 import { buildCity } from './world/CityBuilder';
 import { buildSpeedCameras } from './world/SpeedCameraView';
 import { Flash } from './ui/Flash';
@@ -90,6 +91,8 @@ async function startGame(): Promise<void> {
   screens.showLoading(0.66);
   const posts: Post[] = await (await fetch('content/posts.json')).json();
   const taskDefs: unknown[] = await fetch('content/tasks.json').then((r) => r.json()).catch(() => []);
+  const lib = await loadModelLibrary((d, t) => screens.showLoading(0.66 + 0.34 * d / t, `Wereld laden… ${d}/${t}`));
+  void lib; // Task 4+ hands the library to the builders
   screens.showLoading(1);
 
   const graph = RoadGraph.fromData(roads);

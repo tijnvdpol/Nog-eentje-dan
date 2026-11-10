@@ -26,8 +26,9 @@ export class Screens {
     box.appendChild(b);
   }
 
-  showLoading(progress: number): void {
-    this.show(`<h2>Laden…</h2><p>${Math.round(Math.min(1, Math.max(0, progress)) * 100)}%</p>`);
+  showLoading(progress: number, label?: string): void {
+    this.show(`<h2>Laden…</h2><p>${Math.round(Math.min(1, Math.max(0, progress)) * 100)}%</p>` +
+      (label ? `<p class="screen__label">${escapeHtml(label)}</p>` : ''));
   }
 
   showWebGLError(): void {
