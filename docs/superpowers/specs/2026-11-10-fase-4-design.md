@@ -44,7 +44,7 @@ Deze spec bouwt voort op de hoofdspec (`2026-11-08-scroll-rij-game-design.md`), 
 
 ### 3.1 Bronnen (handwerk van Tijn)
 
-Tijn downloadt deze gratis CC0-packs van kenney.nl en zet de zip-bestanden in `assets-src/kenney/` (deze map staat in `.gitignore`):
+Tijn downloadt deze gratis CC0-packs van kenney.nl en pakt ze uit. Alleen de modellen die we gebruiken komen in `assets-src/kenney/<packmap>/`, met hetzelfde pad als in het pack. Deze map staat in `.gitignore`.
 
 | Pack | Gebruikt voor |
 |---|---|
@@ -59,9 +59,9 @@ De omgeving van Claude kan kenney.nl niet bereiken. Daarom is het downloaden het
 ### 3.2 Script: `npm run gen:models` (`scripts/generate-models.ts`)
 
 - Leest `scripts/models.manifest.ts`: per **rol** (bijv. `car.hatchback`, `house.a`, `tree.oak`, `prop.bench`) het pack, het pad in de zip en de afstelwaarden (zie §3.3).
-- Haalt alleen die bestanden uit de zips, maakt ze kleiner met `@gltf-transform` (dedup, prune, weld; **geen Draco**, dan is er ook geen decoder nodig) en schrijft per rol één `.glb` naar `public/models/`. Gedeelde textures (de Kenney-`colormap`) worden één keer opgenomen.
+- Leest die bestanden uit de uitgepakte packmappen, maakt ze kleiner met `@gltf-transform` (dedup, prune, weld; **geen Draco**, dan is er ook geen decoder nodig) en schrijft per rol één `.glb` naar `public/models/`. Gedeelde textures (de Kenney-`colormap`) worden één keer opgenomen.
 - Schrijft `public/models/index.json`: rol → bestand, plus de maat van de bounding box.
-- **Stopt met een duidelijke melding** als een zip of bestand uit het manifest ontbreekt (welke rol, welk pack, welk pad).
+- **Stopt met een duidelijke melding** als een packmap of bestand uit het manifest ontbreekt (welke rol, welk pack, welk pad).
 - **Budget:** `public/models/` samen ≤ 5 MB; het script meldt de totale grootte en faalt als het budget wordt overschreden.
 - `public/models/` gaat wel mee naar GitHub, zodat Vercel het script niet hoeft te draaien.
 
@@ -256,7 +256,7 @@ cockpit: { engineLightAt: 50, pendulumLen: 0.12, pendulumDamping: 1.5, pendulumP
 - Een ontbrekend of kapot model geeft een terugvalvorm plus `console.warn`; het spel blijft speelbaar.
 - Een ontbrekend `index.json` betekent: alles valt terug op de oude vormen, en de laadbalk is meteen vol.
 - Een ontbrekend `shops.json` betekent: luifels zonder bord.
-- `gen:models` faalt met een duidelijke melding bij een ontbrekende zip of een ontbrekend bestand, en bij een overschreden budget.
+- `gen:models` faalt met een duidelijke melding bij een ontbrekende packmap of een ontbrekend bestand, en bij een overschreden budget.
 
 ### 9.4 Testen
 
