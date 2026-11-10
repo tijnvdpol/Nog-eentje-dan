@@ -6,7 +6,7 @@ import { groupByChunk } from './chunking';
  * `write` fills the instance matrix (and colour) of one item; it returns true when it set the colour.
  */
 export function addInstancedChunks<T extends { x: number; z: number }>(
-  scene: THREE.Scene, geometry: THREE.BufferGeometry, material: THREE.Material, items: readonly T[], size: number,
+  scene: THREE.Object3D, geometry: THREE.BufferGeometry, material: THREE.Material, items: readonly T[], size: number,
   write: (item: T, m: THREE.Matrix4, color: THREE.Color) => boolean,
 ): THREE.InstancedMesh[] {
   const meshes: THREE.InstancedMesh[] = [];
@@ -30,7 +30,7 @@ export function addInstancedChunks<T extends { x: number; z: number }>(
  * to parts with `tint`, or to every part when none is marked as tint.
  */
 export function addInstancedModel<T extends { x: number; z: number }>(
-  scene: THREE.Scene, parts: readonly { geometry: THREE.BufferGeometry; material: THREE.Material; tint: boolean }[],
+  scene: THREE.Object3D, parts: readonly { geometry: THREE.BufferGeometry; material: THREE.Material; tint: boolean }[],
   items: readonly T[], size: number,
   write: (item: T, m: THREE.Matrix4, color: THREE.Color) => boolean,
 ): THREE.InstancedMesh[] {

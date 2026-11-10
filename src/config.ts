@@ -29,5 +29,16 @@ export const CONFIG = {
   settings: { defaultVolume: 80, reducedMotionFactor: 0.5, storageKey: 'nog-eentje-dan:settings' },
   attract: { radiusM: 250, heightM: 60, periodSec: 90, blurPx: 4 },
   models: { budgetMB: 5 },
+  facade: { floorH: 3, plinthH: 4, windowW: 1.4, windowGap: 1.2, recessM: 0.15, lodNearM: 120,
+            typeMix: { kantoor: 0.3, baksteen: 0.45, flat: 0.25 }, awningShare: 0.4, roofPartsMax: 3,
+            /** Wall colours per type, taken from the City Kit Commercial colormap (6 per type). */
+            palette: {
+              kantoor: [0x868ba1, 0xa0a8c9, 0x8e95b3, 0x666b80, 0xbcc5ec, 0x6d738a],
+              baksteen: [0xb06041, 0xcf735b, 0x995a41, 0xab5f41, 0xc46d56, 0x875542],
+              flat: [0xfde4c7, 0xf2bf99, 0xfaae8a, 0xf7f7fa, 0xf1976c, 0xdcdce9],
+            } as Record<'kantoor' | 'baksteen' | 'flat', readonly number[]> },
+  sidewalk: { widthM: 2.5, kerbH: 0.15 },
+  light: { windowLitShare: 0.35, windowWarmShare: 0.8, houseLitShare: 0.6, bloomStrength: 0.6, bloomRadius: 0.4, bloomThreshold: 0.85 },
+  proefblok: { codeBlock: { x0: -200, z0: -200 }, kenneyBlock: { x0: -100, z0: -200 }, size: 100 },
   audio: { lowpassMaxHz: 20000, lowpassMinHz: 800, wobbleFromPromille: 1.3, wobbleMaxCents: 30, gearBandKmh: 30, maxGear: 4, tiresMinKmh: 20 },
 } as const;

@@ -48,9 +48,9 @@ async function main(): Promise<void> {
       }
       const { calls, triangles } = await page.evaluate(() => (window as unknown as { __shot: { calls: number; triangles: number } }).__shot);
       await page.screenshot({ path: join(out, `${shot.id}.png`) });
+      meting[shot.id] = { calls, triangles };
+      console.log(`  ${calls} calls, ${triangles} driehoeken`);
       if (shot.measure) {
-        meting[shot.id] = { calls, triangles };
-        console.log(`  ${calls} calls, ${triangles} driehoeken`);
         if (calls > MAX_CALLS || triangles > MAX_TRIANGLES) failures.push(`${shot.id}: ${calls} calls (max ${MAX_CALLS}), ${triangles} driehoeken (max ${MAX_TRIANGLES})`);
       }
     }

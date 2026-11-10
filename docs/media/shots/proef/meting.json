@@ -1,0 +1,26 @@
+{
+  "proef-1": {
+    "calls": 68,
+    "triangles": 102334
+  },
+  "proef-2": {
+    "calls": 68,
+    "triangles": 102466
+  },
+  "proef-3": {
+    "calls": 80,
+    "triangles": 104812
+  },
+  "kenney-1": {
+    "calls": 60,
+    "triangles": 97324
+  },
+  "kenney-2": {
+    "calls": 60,
+    "triangles": 78586
+  },
+  "kenney-3": {
+    "calls": 68,
+    "triangles": 102636
+  }
+}

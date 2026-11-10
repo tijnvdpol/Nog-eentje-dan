@@ -96,8 +96,10 @@ async function startGame(): Promise<void> {
   screens.showLoading(0.66);
   const posts: Post[] = await (await fetch('content/posts.json')).json();
   const taskDefs: unknown[] = await fetch('content/tasks.json').then((r) => r.json()).catch(() => []);
+  const shops: string[] = await fetch('content/shops.json').then((r) => r.json())
+    .then((v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []))
+    .catch(() => { console.warn('shops.json ontbreekt: luifels zonder bord'); return []; });
   const lib = await loadModelLibrary((d, t) => screens.showLoading(0.66 + 0.34 * d / t, `Wereld laden… ${d}/${t}`));
-  void lib; // Task 4+ hands the library to the builders
   screens.showLoading(1);
 
   const graph = RoadGraph.fromData(roads);
@@ -105,7 +107,7 @@ async function startGame(): Promise<void> {
   world.timestep = CONFIG.loop.fixedDt;
 
   const renderer = new Renderer(canvas);
-  buildCity(renderer.scene, world, graph, generateCityLayout(graph, CONFIG.world.seed));
+  buildCity(renderer.scene, world, graph, generateCityLayout(graph, CONFIG.world.seed), { lib, shops, proefblok: params.has('proefblok') });
   buildVillage(renderer.scene, world, graph, generateVillageLayout(graph, CONFIG.world.seed), nwegDecor(graph, mulberry32(CONFIG.world.seed)));
   buildTankstation(renderer.scene, world);
   buildSpeedCameras(renderer.scene, world, graph);
