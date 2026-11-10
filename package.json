@@ -11,7 +11,8 @@
     "gen:models": "tsx scripts/generate-models.ts",
     "gen:roads": "tsx scripts/generate-roads.ts",
     "gen:media": "tsx scripts/generate-placeholder-media.ts",
-    "gen:og": "tsx scripts/generate-og.ts"
+    "gen:og": "tsx scripts/generate-og.ts",
+    "shots": "tsx scripts/screenshot.ts"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.21.0",
@@ -25,6 +26,7 @@
     "@types/node": "^26.6.6",
     "@types/three": "^0.187.0",
     "jsdom": "^31.0.0",
+    "playwright": "^1.63.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.6",

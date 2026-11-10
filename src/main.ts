@@ -37,6 +37,7 @@ import { buildTankstation } from './world/TankstationView';
 import { buildVillage } from './world/VillageBuilder';
 import { generateVillageLayout } from './world/villageLayout';
 import { nwegDecor } from './world/nwegDecor';
+import { shotById } from './debug/shots';
 import { generateCityLayout } from './world/cityLayout';
 import { RoadGraph } from './world/roadGraph';
 import { SignalView } from './world/SignalView';
@@ -77,7 +78,11 @@ async function startGame(): Promise<void> {
   const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
   const canvas = el<HTMLCanvasElement>('game');
   const screens = new Screens(el('screens'));
-  const debug = new URLSearchParams(location.search).has('debug');
+  const params = new URLSearchParams(location.search);
+  const debug = params.has('debug');
+  const shot = params.has('shot') ? shotById(params.get('shot')!) : undefined;
+  if (params.has('shot') && !shot) console.error('Onbekende shot:', params.get('shot'));
+  let shotFrames = 0;
 
   const probe = document.createElement('canvas');
   if (!probe.getContext('webgl2')) { screens.showWebGLError(); return; }
@@ -105,7 +110,7 @@ async function startGame(): Promise<void> {
   buildTankstation(renderer.scene, world);
   buildSpeedCameras(renderer.scene, world, graph);
   const cockpit = new Cockpit(renderer.camera);
-  renderer.gl.info.autoReset = !debug; // debug overlay counts a whole post-processed frame
+  renderer.gl.info.autoReset = !(debug || shot); // debug overlay counts a whole post-processed frame
   const post = new PostFX(renderer.gl, renderer.scene, renderer.camera);
   const trafficView = new TrafficView(renderer.scene, world);
   const signalView = new SignalView(renderer.scene, graph);
@@ -333,7 +338,7 @@ async function startGame(): Promise<void> {
     }
 
     const fx = applyReducedMotion(drunkEffects(session.promille), settings.reducedMotion);
-    if (phase === 'playing') {
+    if (phase === 'playing' && !shot) {
       const steps = loop.advance(frameDt);
       const drive = input.drive();
       for (let i = 0; i < steps && phase === 'playing'; i++) {
@@ -358,17 +363,22 @@ async function startGame(): Promise<void> {
     } else {
       const { x, z, heading } = car.state;
       const fx_ = Math.sin(heading), fz_ = Math.cos(heading);
-      renderer.camera.position.set(x + fx_ * 0.2 + fz_ * 0.35, 1.2, z + fz_ * 0.2 - fx_ * 0.35);
+      if (shot && !shot.cockpit) renderer.camera.position.set(x, 1.7, z);
+      else renderer.camera.position.set(x + fx_ * 0.2 + fz_ * 0.35, 1.2, z + fz_ * 0.2 - fx_ * 0.35);
       renderer.camera.rotation.set(0, heading + Math.PI, 0);
-      cockpit.update(sim.lastSteer, session.drinkProgress);
+      if (!shot || shot.cockpit) cockpit.update(sim.lastSteer, session.drinkProgress);
     }
     signalView.update(sim.timeSec);
     post.apply(phase === 'playing' || phase === 'paused' ? fx : drunkEffects(0), sim.timeSec);
-    if (debug) renderer.gl.info.reset();
+    if (debug || shot) renderer.gl.info.reset();
     post.render();
+    if (shot && ++shotFrames === 30) {
+      const w = window as unknown as { __shot?: { ready: boolean; calls: number; triangles: number } };
+      w.__shot = { ready: true, calls: renderer.gl.info.render.calls, triangles: renderer.gl.info.render.triangles };
+    }
 
-    cupBtn.style.display = phase === 'playing' ? 'block' : 'none';
-    if (phase === 'playing') {
+    cupBtn.style.display = shot ? 'none' : phase === 'playing' ? 'block' : 'none';
+    if (phase === 'playing' && !shot) {
       renderer.camera.updateMatrixWorld(true);
       cockpit.canWorldPosition(projected).project(renderer.camera);
       cupBtn.style.left = `${((projected.x + 1) / 2) * 100}%`;
@@ -376,7 +386,7 @@ async function startGame(): Promise<void> {
       cupBtn.style.bottom = 'auto';
       cupBtn.style.transform = 'translate(-50%, -50%)';
     }
-    updateTaskUi();
+    if (!shot) updateTaskUi();
 
     if (debug) {
       fpsAcc += frameDt; fpsFrames++;
@@ -385,7 +395,15 @@ async function startGame(): Promise<void> {
   }
 
   hud.reset();
-  showStartScreen();
+  if (shot) {
+    // screenshot / measurement mode: a frozen run at a fixed pose, no overlays
+    newRun();
+    introTimers.forEach(clearTimeout); introTimers = [];
+    car.teleport({ x: shot.x, z: shot.z, heading: shot.heading });
+    session.debugSetPromille(shot.promille);
+    for (const id of ['hud', 'phone', 'cupholder']) el(id).style.display = 'none';
+    cockpit.setVisible(shot.cockpit);
+  } else showStartScreen();
   requestAnimationFrame(frame);
   (window as unknown as { __nogEentjeDan?: unknown }).__nogEentjeDan = debug ? { get session() { return session; }, car, sim, audio } : undefined;
 }

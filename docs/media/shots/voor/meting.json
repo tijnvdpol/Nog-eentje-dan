@@ -1,0 +1,18 @@
+{
+  "meet-stad": {
+    "calls": 56,
+    "triangles": 39934
+  },
+  "meet-ring": {
+    "calls": 33,
+    "triangles": 23438
+  },
+  "meet-nweg": {
+    "calls": 32,
+    "triangles": 21288
+  },
+  "meet-dorp": {
+    "calls": 40,
+    "triangles": 20368
+  }
+}
