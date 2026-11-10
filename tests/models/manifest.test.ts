@@ -12,6 +12,10 @@ describe('model manifest', () => {
     for (const r of ['car.hatchback', 'car.sedan', 'car.suv', 'car.van', 'car.delivery', 'car.taxi'] as const)
       expect(MANIFEST[r].target).toMatchObject({ w: 1.8, d: 4.4 });
   });
+  it('cars are stretched to the collider footprint', () => {
+    for (const r of ['car.hatchback', 'car.sedan', 'car.suv', 'car.van', 'car.delivery', 'car.taxi'] as const)
+      expect(MANIFEST[r].stretch).toBe(true);
+  });
   it('finds a pack folder by slug', () => {
     expect(findPackDir(['kenney_car-kit', 'kenney_nature-kit'], 'car-kit')).toBe('kenney_car-kit');
     expect(findPackDir(['kenney_city-kit-roads_2.0'], 'city-kit-roads')).toBe('kenney_city-kit-roads_2.0');

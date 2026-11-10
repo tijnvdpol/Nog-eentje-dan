@@ -6,7 +6,7 @@ export type ManifestEntry = { pack: KenneyPack; path: string } & Omit<ModelIndex
 const CAR = { w: 1.8, d: 4.4 };
 const HOUSE = { w: 8, d: 9 }; // CONFIG.village.houseW / houseD
 const TREE = { h: 6.5 };
-const car = (file: string): ManifestEntry => ({ pack: 'car-kit', path: `Models/GLB format/${file}.glb`, target: CAR });
+const car = (file: string): ManifestEntry => ({ pack: 'car-kit', path: `Models/GLB format/${file}.glb`, target: CAR, stretch: true });
 const house = (letter: string): ManifestEntry => ({ pack: 'city-kit-suburban', path: `Models/GLB format/building-type-${letter}.glb`, target: HOUSE });
 const tree = (name: string): ManifestEntry => ({ pack: 'nature-kit', path: `Models/GLTF format/${name}.glb`, target: TREE });
 const proef = (letter: string): ManifestEntry => ({ pack: 'city-kit-commercial', path: `Models/GLB format/building-${letter}.glb` });

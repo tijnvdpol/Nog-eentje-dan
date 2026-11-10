@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { MODEL_ROLES } from '../../src/models/roles';
 import {
-  fallbackParts, loadModelLibrary, normalizeParts, toLitMaterial, type ModelParts,
+  fallbackParts, loadModelLibrary, mergeScene, normalizeParts, toLitMaterial, type ModelParts,
 } from '../../src/models/modelLibrary';
 import { addInstancedModel } from '../../src/world/instancedChunks';
 
@@ -28,6 +28,15 @@ describe('normalizeParts', () => {
   it('scale is the minimum of the target ratios', () => {
     const s = bounds(normalizeParts(box(2, 1, 4), { w: 2, d: 4, h: 1 }, { w: 1, d: 8 })).getSize(new THREE.Vector3());
     expect(s.x).toBeCloseTo(1); expect(s.z).toBeCloseTo(2);
+  });
+  it('compares target axes after the yaw offset', () => {
+    // raw 2 wide x 4 long, turned a quarter: 4 wide x 2 long; target w 2 -> scale 0.5
+    const s = bounds(normalizeParts(box(2, 1, 4), { w: 2, d: 4, h: 1 }, { w: 2 }, Math.PI / 2)).getSize(new THREE.Vector3());
+    expect(s.x).toBeCloseTo(2); expect(s.z).toBeCloseTo(1); expect(s.y).toBeCloseTo(0.5);
+  });
+  it('stretch scales each axis and h by the mean of the w and d ratios', () => {
+    const s = bounds(normalizeParts(box(1.5, 1, 2.55), { w: 1.5, d: 2.55, h: 1 }, { w: 1.8, d: 4.4 }, 0, true)).getSize(new THREE.Vector3());
+    expect(s.x).toBeCloseTo(1.8); expect(s.z).toBeCloseTo(4.4); expect(s.y).toBeCloseTo((1.2 + 4.4 / 2.55) / 2);
   });
   it('yawOffset turns the model', () => {
     const s = bounds(normalizeParts(box(2, 1, 4), { w: 2, d: 4, h: 1 }, undefined, Math.PI / 2)).getSize(new THREE.Vector3());
@@ -106,5 +115,44 @@ describe('addInstancedModel', () => {
   it('applies no colour when write returns false', () => {
     const m = addInstancedModel(new THREE.Scene(), mk([false]), [items[0]], 100, () => false);
     expect(m[0].instanceColor).toBeNull();
+  });
+});
+
+describe('mergeScene', () => {
+  const entry = { file: 'x.glb', size: { w: 1, d: 1, h: 1 } };
+  const A = new THREE.MeshBasicMaterial({ name: 'A' }), B = new THREE.MeshStandardMaterial({ name: 'B' });
+  const triCount = (g: THREE.BufferGeometry): number => (g.getIndex() ? g.getIndex()!.count : g.getAttribute('position').count) / 3;
+  const unindexed = (g: THREE.BufferGeometry): THREE.BufferGeometry => g.toNonIndexed();
+
+  it('merges per material, handles groups, mixed attributes and unlit conversion', () => {
+    const root = new THREE.Group();
+    const m1 = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), A);
+    m1.geometry.setAttribute('uv1', m1.geometry.getAttribute('uv').clone()); // only this one has uv1
+    const m2 = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), A); m2.position.set(3, 0, 0);
+    const multi = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), [A, B]); // groups per face pair
+    multi.geometry.clearGroups(); multi.geometry.addGroup(0, 6, 0); multi.geometry.addGroup(6, 30, 1);
+    multi.position.set(6, 0, 0);
+    root.add(m1, m2, multi);
+    const parts = mergeScene(root, entry);
+    expect(parts).toHaveLength(2);
+    const [pa, pb] = parts;
+    expect(pa.material).toBeInstanceOf(THREE.MeshStandardMaterial);
+    expect(pb.material).toBe(B);
+    expect(triCount(pa.geometry)).toBe(12 + 12 + 2);
+    expect(triCount(pb.geometry)).toBe(10);
+    expect(pa.geometry.getAttribute('uv1')).toBeUndefined();
+  });
+  it('splits non-indexed multi-material meshes by vertex range and mixes indexed with non-indexed', () => {
+    const root = new THREE.Group();
+    const g = unindexed(new THREE.BoxGeometry(1, 1, 1)); // 36 vertices
+    g.clearGroups(); g.addGroup(0, 12, 0); g.addGroup(12, 24, 1);
+    root.add(new THREE.Mesh(g, [A, B]), new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), A));
+    const parts = mergeScene(root, entry);
+    const byMat = new Map(parts.map((p) => [p.material === B ? 'B' : 'A', p]));
+    expect(triCount(byMat.get('A')!.geometry)).toBe(4 + 12);
+    expect(triCount(byMat.get('B')!.geometry)).toBe(8);
+  });
+  it('throws without meshes', () => {
+    expect(() => mergeScene(new THREE.Group(), entry)).toThrow();
   });
 });

@@ -39,6 +39,8 @@ export interface ModelIndexEntry {
   size: { w: number; d: number; h: number };
   target?: { w?: number; d?: number; h?: number };
   yawOffset?: number;
+  /** Scale each target axis independently (h by the mean of the w and d ratios) instead of uniformly. */
+  stretch?: boolean;
   bodyMaterial?: string;
   glassColors?: string[];
 }

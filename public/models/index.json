@@ -9,7 +9,8 @@
     "target": {
       "w": 1.8,
       "d": 4.4
-    }
+    },
+    "stretch": true
   },
   "car.sedan": {
     "file": "car.sedan.glb",
@@ -21,7 +22,8 @@
     "target": {
       "w": 1.8,
       "d": 4.4
-    }
+    },
+    "stretch": true
   },
   "car.suv": {
     "file": "car.suv.glb",
@@ -33,7 +35,8 @@
     "target": {
       "w": 1.8,
       "d": 4.4
-    }
+    },
+    "stretch": true
   },
   "car.van": {
     "file": "car.van.glb",
@@ -45,7 +48,8 @@
     "target": {
       "w": 1.8,
       "d": 4.4
-    }
+    },
+    "stretch": true
   },
   "car.delivery": {
     "file": "car.delivery.glb",
@@ -57,7 +61,8 @@
     "target": {
       "w": 1.8,
       "d": 4.4
-    }
+    },
+    "stretch": true
   },
   "car.taxi": {
     "file": "car.taxi.glb",
@@ -69,7 +74,8 @@
     "target": {
       "w": 1.8,
       "d": 4.4
-    }
+    },
+    "stretch": true
   },
   "house.a": {
     "file": "house.a.glb",
