@@ -58,7 +58,7 @@ De omgeving van Claude kan kenney.nl niet bereiken. Daarom is het downloaden het
 
 ### 3.2 Script: `npm run gen:models` (`scripts/generate-models.ts`)
 
-- Leest `scripts/models.manifest.ts`: per **rol** (bijv. `car.hatchback`, `house.a`, `tree.oak`, `prop.bench`) het pack, het pad in de zip en de afstelwaarden (zie §3.3).
+- Leest `scripts/models.manifest.ts`: per **rol** (bijv. `car.hatchback`, `house.a`, `tree.oak`, `prop.bench`) het pack, het pad in de packmap en de afstelwaarden (zie §3.3).
 - Leest die bestanden uit de uitgepakte packmappen, maakt ze kleiner met `@gltf-transform` (dedup, prune, weld; **geen Draco**, dan is er ook geen decoder nodig) en schrijft per rol één `.glb` naar `public/models/`. Gedeelde textures (de Kenney-`colormap`) worden één keer opgenomen.
 - Schrijft `public/models/index.json`: rol → bestand, plus de maat van de bounding box.
 - **Stopt met een duidelijke melding** als een packmap of bestand uit het manifest ontbreekt (welke rol, welk pack, welk pad).
