@@ -108,7 +108,7 @@ async function startGame(): Promise<void> {
 
   const renderer = new Renderer(canvas);
   buildCity(renderer.scene, world, graph, generateCityLayout(graph, CONFIG.world.seed), { lib, shops });
-  buildVillage(renderer.scene, world, graph, generateVillageLayout(graph, CONFIG.world.seed), nwegDecor(graph, mulberry32(CONFIG.world.seed)));
+  buildVillage(renderer.scene, world, graph, generateVillageLayout(graph, CONFIG.world.seed), nwegDecor(graph, mulberry32(CONFIG.world.seed)), lib);
   buildTankstation(renderer.scene, world);
   buildSpeedCameras(renderer.scene, world, graph);
   const cockpit = new Cockpit(renderer.camera);

@@ -29,14 +29,12 @@ export function toLitMaterial(m: THREE.Material): THREE.Material {
 }
 
 /**
- * Turns, scales and places the parts on the ground (min y = 0), centred in x/z. `size` is the raw model
- * size; `target` describes the footprint after the yaw offset. Scale is uniform (minimum of the target
- * ratios, 1 without target), or per axis when `stretch` is set (h follows the mean of the w and d ratios).
- * Returns new geometry; the input is not changed.
+ * The scale `normalizeParts` applies, and the model's size after the yaw offset and that scale
+ * (w along x, d along z). Pure arithmetic on the index entry, so the footprint can be checked without loading.
  */
-export function normalizeParts(
-  parts: ModelParts, size: Size, target?: Target, yawOffset = 0, stretch = false,
-): ModelParts {
+export function normalizedScale(
+  size: Size, target?: Target, yawOffset = 0, stretch = false,
+): { sx: number; sy: number; sz: number; w: number; d: number; h: number } {
   const cos = Math.abs(Math.cos(yawOffset)), sin = Math.abs(Math.sin(yawOffset));
   const w = size.w * cos + size.d * sin, d = size.w * sin + size.d * cos, h = size.h;
   const rw = target?.w ? target.w / w : undefined, rd = target?.d ? target.d / d : undefined;
@@ -49,6 +47,19 @@ export function normalizeParts(
     const mean = horiz.length ? horiz.reduce((a, c) => a + c, 0) / horiz.length : rh!;
     sx = rw ?? mean; sz = rd ?? mean; sy = rh ?? mean;
   }
+  return { sx, sy, sz, w: w * sx, d: d * sz, h: h * sy };
+}
+
+/**
+ * Turns, scales and places the parts on the ground (min y = 0), centred in x/z. `size` is the raw model
+ * size; `target` describes the footprint after the yaw offset. Scale is uniform (minimum of the target
+ * ratios, 1 without target), or per axis when `stretch` is set (h follows the mean of the w and d ratios).
+ * Returns new geometry; the input is not changed.
+ */
+export function normalizeParts(
+  parts: ModelParts, size: Size, target?: Target, yawOffset = 0, stretch = false,
+): ModelParts {
+  const { sx, sy, sz } = normalizedScale(size, target, yawOffset, stretch);
   const out = parts.map((p) => {
     const geometry = p.geometry.clone();
     if (yawOffset) geometry.rotateY(yawOffset);

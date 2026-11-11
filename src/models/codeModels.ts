@@ -4,7 +4,7 @@ import { ROOF_PART_SIZE } from '../world/facadeLayout';
 import type { ModelPart, ModelParts } from './modelLibrary';
 
 /** Low-poly models built in code, for parts the Kenney packs do not have. Same shape as ModelLibrary parts. */
-export type CodeRole = 'prop.bench' | 'prop.bin' | 'roof.ac' | 'roof.tank' | 'roof.lift';
+export type CodeRole = 'prop.bench' | 'prop.bin' | 'roof.ac' | 'roof.tank' | 'roof.lift' | 'terrace.table' | 'terrace.chair' | 'garden.hedge';
 
 type Piece = THREE.BufferGeometry;
 const box = (w: number, h: number, d: number, x = 0, y = 0, z = 0): Piece => {
@@ -78,5 +78,22 @@ function build(role: CodeRole): ModelParts {
         part([cyl(0.25, 0.8, 8)], flat(0x515566)),
         part([cyl(0.27, 0.06, 8, 0, 0.8)], flat(0x3a3c3f)),
       ];
+    case 'garden.hedge':
+      // trimmed privet hedge, 3.2 m long along local x, with a slightly narrower top
+      return [part([box(3.2, 0.8, 0.6), box(3.1, 0.12, 0.5, 0, 0.8)], flat(0x2d5232, 1))];
+    case 'terrace.table':
+      // round bistro table: light top on one pole with a round foot
+      return [
+        part([cyl(0.4, 0.04, 12, 0, 0.72)], flat(0xd9d2c3, 0.6)),
+        part([cyl(0.035, 0.7, 6, 0, 0.02), cyl(0.24, 0.03, 10)], flat(0x2e3033, 0.5)),
+      ];
+    case 'terrace.chair': {
+      // bistro chair, back towards local -z: rattan seat and back on four thin metal legs
+      const legs = [[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([sx, sz]) => box(0.03, 0.45, 0.03, sx * 0.18, 0, sz * 0.18));
+      return [
+        part([box(0.42, 0.05, 0.42, 0, 0.45), box(0.42, 0.42, 0.04, 0, 0.5, -0.19)], flat(0x8a6440)),
+        part([...legs, box(0.03, 0.42, 0.03, -0.19, 0.5, -0.19), box(0.03, 0.42, 0.03, 0.19, 0.5, -0.19)], flat(0x2e3033, 0.5)),
+      ];
+    }
   }
 }

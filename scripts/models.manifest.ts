@@ -11,12 +11,15 @@ const house = (letter: string): ManifestEntry => ({ pack: 'city-kit-suburban', p
 const tree = (name: string): ManifestEntry => ({ pack: 'nature-kit', path: `Models/GLTF format/${name}.glb`, target: TREE });
 
 // All Kenney GLBs use one shared colormap material, so no bodyMaterial/glassColors are known.
+// Houses: the front (door, porch) is local -z and the width runs along x, so no yawOffset is needed;
+// the village turns each house towards its street (houseFrontYaw).
 export const MANIFEST: Record<ModelRole, ManifestEntry> = {
   'car.hatchback': car('hatchback-sports'), 'car.sedan': car('sedan'), 'car.suv': car('suv'),
   'car.van': car('van'), 'car.delivery': car('delivery'), 'car.taxi': car('taxi'),
   'house.a': house('a'), 'house.b': house('e'), 'house.c': house('h'), 'house.d': house('i'),
-  'prop.fence': { pack: 'city-kit-suburban', path: 'Models/GLB format/fence-low.glb' },
-  'prop.hedge': { pack: 'nature-kit', path: 'Models/GLTF format/plant_bush.glb' },
+  // one straight fence panel (fence-low is two side fences of a plot); several panels make a front fence
+  'prop.fence': { pack: 'city-kit-suburban', path: 'Models/GLB format/fence.glb', target: { h: 0.9 } },
+  'prop.hedge': { pack: 'nature-kit', path: 'Models/GLTF format/plant_bush.glb', target: { h: 0.9 } },
   'prop.awning': { pack: 'city-kit-commercial', path: 'Models/GLB format/detail-awning.glb' },
   'prop.lamp': { pack: 'city-kit-roads', path: 'Models/GLB format/light-square.glb', target: { h: 6 } },
   'tree.a': tree('tree_oak'), 'tree.b': tree('tree_default'), 'tree.c': tree('tree_detailed'),

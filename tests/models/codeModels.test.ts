@@ -29,4 +29,16 @@ describe('codeModel', () => {
     expect(codeModel('prop.bench').length).toBeGreaterThan(0);
     expect(codeModel('prop.bin').length).toBeGreaterThan(0);
   });
+  it('builds a front-yard hedge of 3.2 × 0.6 m, about 0.9 m high', () => {
+    const b = bounds('garden.hedge');
+    expect(b.min.y).toBeCloseTo(0); expect(b.max.y).toBeCloseTo(0.92);
+    expect(b.max.x - b.min.x).toBeCloseTo(3.2); expect(b.max.z - b.min.z).toBeCloseTo(0.6);
+  });
+  it('builds terrace tables and chairs at bistro size, standing on the ground', () => {
+    const t = bounds('terrace.table'), c = bounds('terrace.chair');
+    expect(t.min.y).toBeCloseTo(0); expect(c.min.y).toBeCloseTo(0);
+    expect(t.max.y).toBeCloseTo(0.76); expect(t.max.x - t.min.x).toBeCloseTo(0.8);
+    expect(c.max.y).toBeGreaterThan(0.85); expect(c.max.y).toBeLessThan(1);
+    expect(c.max.x - c.min.x).toBeLessThanOrEqual(0.45);
+  });
 });

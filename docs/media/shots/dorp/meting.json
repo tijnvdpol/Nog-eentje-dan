@@ -1,0 +1,18 @@
+{
+  "dorp-1": {
+    "calls": 85,
+    "triangles": 64596
+  },
+  "dorp-2": {
+    "calls": 70,
+    "triangles": 51168
+  },
+  "kerk-1": {
+    "calls": 37,
+    "triangles": 28034
+  },
+  "meet-dorp": {
+    "calls": 79,
+    "triangles": 61623
+  }
+}
