@@ -1,0 +1,14 @@
+{
+  "verkeer-1": {
+    "calls": 55,
+    "triangles": 91228
+  },
+  "meet-stad": {
+    "calls": 172,
+    "triangles": 224678
+  },
+  "meet-ring": {
+    "calls": 43,
+    "triangles": 25400
+  }
+}

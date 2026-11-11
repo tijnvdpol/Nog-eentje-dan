@@ -1,5 +1,5 @@
 /** Fixed camera poses for `?shot=<id>` (screenshots and render-budget measurements). heading: forward = (sin h, cos h). */
-export interface Shot { id: string; x: number; z: number; heading: number; promille: number; cockpit: boolean; measure: boolean }
+export interface Shot { id: string; x: number; z: number; heading: number; promille: number; cockpit: boolean; measure: boolean; traffic?: boolean }
 
 const H = Math.PI / 2;
 const s = (id: string, x: number, z: number, heading: number, extra: Partial<Shot> = {}): Shot =>
@@ -17,6 +17,8 @@ export const SHOTS: readonly Shot[] = [
   s('kerk-1', 2780, 0, H),
   s('cockpit-0', -230, -199, H),
   s('cockpit-15', -230, -199, H, { promille: 1.5 }),
+  // traffic: the simulation runs ~5 s with the player held still before the frame is frozen
+  s('verkeer-1', 627.7, 124.9, Math.PI - 0.294, { traffic: true }),
   s('meet-stad', 0, -50, 0, { measure: true }),
   s('meet-ring', 627.7, 124.9, -0.294, { measure: true }),
   s('meet-nweg', 1075, 20, 1.41, { measure: true }),

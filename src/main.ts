@@ -114,7 +114,7 @@ async function startGame(): Promise<void> {
   const cockpit = new Cockpit(renderer.camera);
   renderer.gl.info.autoReset = !(debug || shot); // debug overlay counts a whole post-processed frame
   const post = new PostFX(renderer.gl, renderer.scene, renderer.camera);
-  const trafficView = new TrafficView(renderer.scene, world);
+  const trafficView = new TrafficView(renderer.scene, world, lib);
   const signalView = new SignalView(renderer.scene, graph);
   const pedView = new PedestrianView(renderer.scene);
 
@@ -401,8 +401,15 @@ async function startGame(): Promise<void> {
     // screenshot / measurement mode: a frozen run at a fixed pose, no overlays
     newRun();
     introTimers.forEach(clearTimeout); introTimers = [];
-    car.teleport({ x: shot.x, z: shot.z, heading: shot.heading });
+    const pose = { x: shot.x, z: shot.z, heading: shot.heading };
+    car.teleport(pose);
     session.debugSetPromille(shot.promille);
+    if (shot.traffic) {
+      // let the traffic run ~5 s of game time with the player held still, then freeze
+      const still = { steer: 0, throttle: 0, brake: 0, handbrake: false };
+      for (let i = 0; i < Math.round(5 / CONFIG.loop.fixedDt); i++) { car.teleport(pose); sim.step(CONFIG.loop.fixedDt, still, session, false); }
+      car.teleport(pose);
+    }
     for (const id of ['hud', 'phone', 'cupholder']) el(id).style.display = 'none';
     cockpit.setVisible(shot.cockpit);
   } else showStartScreen();
