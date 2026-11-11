@@ -1,14 +1,22 @@
 {
   "proef-1": {
     "calls": 151,
-    "triangles": 183960
+    "triangles": 183896
   },
   "meet-stad": {
     "calls": 172,
-    "triangles": 224742
+    "triangles": 224678
   },
   "meet-ring": {
     "calls": 43,
     "triangles": 25400
+  },
+  "meet-nweg": {
+    "calls": 32,
+    "triangles": 21288
+  },
+  "meet-dorp": {
+    "calls": 40,
+    "triangles": 20368
   }
 }

@@ -43,16 +43,35 @@ describe('streetProps', () => {
   });
 
   it('props clear of crossings, nodes and places', () => {
-    for (const p of props) {
-      const { edge } = g.nearestEdge(p.x, p.z);
-      for (const c of g.crossings) {
-        const ce = g.edge(c.edgeId), a = g.node(ce.from), b = g.node(ce.to), t = c.s / g.edgeLength(ce.id);
-        expect(Math.hypot(p.x - (a.x + (b.x - a.x) * t), p.z - (a.z + (b.z - a.z) * t))).toBeGreaterThanOrEqual(CW);
-        if (c.edgeId === edge.id) expect(Math.abs(local(edge, p.x, p.z).s - c.s)).toBeGreaterThanOrEqual(CW);
+    for (const seed of [SEED, 2, 3, 42, 2024]) {
+      for (const p of streetProps(g, segs, seed)) {
+        const { edge } = g.nearestEdge(p.x, p.z);
+        for (const c of g.crossings) {
+          if (c.edgeId !== edge.id) continue;
+          expect(Math.abs(local(edge, p.x, p.z).s - c.s)).toBeGreaterThanOrEqual(CW);
+        }
+        for (const n of g.nodes) expect(Math.hypot(p.x - n.x, p.z - n.z)).toBeGreaterThanOrEqual(CLEAR_M);
+        for (const pl of g.places) expect(Math.hypot(p.x - pl.x, p.z - pl.z)).toBeGreaterThanOrEqual(CLEAR_M);
       }
-      for (const n of g.nodes) expect(Math.hypot(p.x - n.x, p.z - n.z)).toBeGreaterThanOrEqual(CLEAR_M);
-      for (const pl of g.places) expect(Math.hypot(p.x - pl.x, p.z - pl.z)).toBeGreaterThanOrEqual(CLEAR_M);
     }
+  });
+
+  it('a mid-block zebra keeps crossingWidthM clear along the street', () => {
+    const node = (id: string, x: number, z: number) => ({ id, x, z });
+    const mid = RoadGraph.fromData({
+      nodes: [node('a', 0, 0), node('b', 100, 0)],
+      edges: [{ id: 'ab', from: 'a', to: 'b', lanesPerDir: 1, speedLimitKmh: 50, zone: 'city', kind: 'stad' }],
+      places: [],
+      crossings: [{ id: 'x', edgeId: 'ab', s: 50 }],
+    });
+    let near = 0;
+    for (let seed = 0; seed < 60; seed++) {
+      for (const p of streetProps(mid, sidewalkSegments(mid), seed)) {
+        expect(Math.abs(p.x - 50)).toBeGreaterThanOrEqual(CW);
+        if (Math.abs(p.x - 50) < CW + 3) near++;
+      }
+    }
+    expect(near).toBeGreaterThan(0); // props do come close, so the clearance is what holds them off
   });
 
   it('props keep clear of lamp posts and of each other', () => {

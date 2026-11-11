@@ -68,7 +68,8 @@ export function streetProps(g: RoadGraph, sidewalks: readonly SidewalkSegment[],
   const lamps = lampPositions(g);
   const zebras = g.crossings.map((c) => {
     const e = g.edge(c.edgeId), a = g.node(e.from), b = g.node(e.to), len = g.edgeLength(e.id);
-    return { x: a.x + (b.x - a.x) * c.s / len, z: a.z + (b.z - a.z) * c.s / len, fx: (b.x - a.x) / len, fz: (b.z - a.z) / len };
+    return { x: a.x + (b.x - a.x) * c.s / len, z: a.z + (b.z - a.z) * c.s / len, fx: (b.x - a.x) / len, fz: (b.z - a.z) / len,
+      /** offset of that street's sidewalk centre from its centre line */ walk: e.lanesPerDir * CONFIG.traffic.laneWidthM + W / 2 };
   });
   const out: StreetProp[] = [];
 
@@ -89,10 +90,12 @@ export function streetProps(g: RoadGraph, sidewalks: readonly SidewalkSegment[],
     for (const n of g.nodes) disc(n.x, n.z, P.nodeClearM);
     for (const p of g.places) disc(p.x, p.z, P.placeClearM);
     for (const z of zebras) {
-      disc(z.x, z.z, CW);
-      // a zebra on this street: keep crossingWidthM clear along the sidewalk
-      const { t, d } = along(z.x, z.z);
-      if (Math.abs(z.fx * fz - z.fz * fx) < 1e-6 && Math.abs(d) < k + W) cuts.push([t - CW - EDGE_M, t + CW + EDGE_M]);
+      // a zebra across this street (its centre line is W/2 + half the carriageway from the segment centre):
+      // keep crossingWidthM clear along the street, whatever the prop's distance from the centre line
+      const lateral = (seg.x - z.x) * -z.fz + (seg.z - z.z) * z.fx;
+      if (Math.abs(z.fx * fz - z.fz * fx) > 1e-6 || Math.abs(Math.abs(lateral) - z.walk) > 1e-3) continue;
+      const { t } = along(z.x, z.z);
+      cuts.push([t - CW - EDGE_M, t + CW + EDGE_M]);
     }
     const free = subtract([-seg.len / 2, seg.len / 2], cuts);
     const posts = lamps.map((l) => along(l.x, l.z)).filter((l) => Math.abs(l.d) < 1).map((l) => l.t);
