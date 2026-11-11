@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildRoadData } from '../../scripts/generate-roads';
 import { CONFIG } from '../../src/config';
 import { generateCityLayout } from '../../src/world/cityLayout';
-import { facadeLayout, streetSides, type FacadeLayout, type Side } from '../../src/world/facadeLayout';
+import { AWNING_MIN_WALL_M, facadeLayout, streetSides, type FacadeLayout, type Side } from '../../src/world/facadeLayout';
 import { RoadGraph } from '../../src/world/roadGraph';
 import type { BuildingSpec } from '../../src/world/types';
 
@@ -60,8 +60,13 @@ describe('facadeLayout', () => {
       expect(Math.abs(n / layouts.length - share)).toBeLessThanOrEqual(0.05);
     }
     const plinth = layouts.flatMap((l) => l.plinth);
-    expect(plinth.length).toBeGreaterThan(50);
-    expect(Math.abs(plinth.filter((p) => p.awning).length / plinth.length - F.awningShare)).toBeLessThanOrEqual(0.05);
+    // the share counts the plinth sides that can carry an awning (at least AWNING_MIN_WALL_M of wall)
+    const eligible = buildings.flatMap((b, i) => layouts[i].plinth.filter((p) => wallLength(b, p.side) >= AWNING_MIN_WALL_M));
+    expect(eligible.length).toBeGreaterThan(50);
+    expect(Math.abs(eligible.filter((p) => p.awning).length / eligible.length - F.awningShare)).toBeLessThanOrEqual(0.05);
+    buildings.forEach((b, i) => {
+      for (const p of layouts[i].plinth) if (wallLength(b, p.side) < AWNING_MIN_WALL_M) expect(p.awning).toBe(false);
+    });
     for (const p of plinth) {
       if (p.shop !== null) { expect(p.awning).toBe(true); expect(SHOPS).toContain(p.shop); }
     }

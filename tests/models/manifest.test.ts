@@ -8,6 +8,10 @@ describe('model manifest', () => {
     expect(Object.keys(FALLBACKS).sort()).toEqual([...MODEL_ROLES].sort());
     expect(new Set(MODEL_ROLES).size).toBe(MODEL_ROLES.length);
   });
+  it('the proefblok roles are gone', () => {
+    expect(MODEL_ROLES).toHaveLength(17);
+    expect(MODEL_ROLES.some((r) => r.startsWith('proef'))).toBe(false);
+  });
   it('cars are scaled to the traffic collider footprint', () => {
     for (const r of ['car.hatchback', 'car.sedan', 'car.suv', 'car.van', 'car.delivery', 'car.taxi'] as const)
       expect(MANIFEST[r].target).toMatchObject({ w: 1.8, d: 4.4 });

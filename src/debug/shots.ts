@@ -6,14 +6,11 @@ const s = (id: string, x: number, z: number, heading: number, extra: Partial<Sho
   ({ id, x, z, heading, promille: 0, cockpit: true, measure: false, ...extra });
 
 export const SHOTS: readonly Shot[] = [
-  // block with corner (-200,-200): along its north street, along its east street, diagonal from the corner
+  // the former proefblok, block with corner (-200,-200) next to the feestje: along its north street,
+  // along the east street of the block beside it, diagonal from the corner
   s('proef-1', -230, -199, H),
   s('proef-2', -99, -250, 0),
   s('proef-3', -215, -215, Math.PI / 4),
-  // block with corner (-100,-200)
-  s('kenney-1', -130, -199, H),
-  s('kenney-2', 1, -250, 0),
-  s('kenney-3', -115, -215, Math.PI / 4),
   // village street (z = 0, x 2500..2800), cafe at (2700,18), church at (2850,0)
   s('dorp-1', 2620, 0, H),
   s('dorp-2', 2670, 0, 1.03),

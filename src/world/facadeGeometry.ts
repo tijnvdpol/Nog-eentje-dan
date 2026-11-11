@@ -4,12 +4,12 @@ import { codeModel } from '../models/codeModels';
 import type { ModelLibrary, ModelParts } from '../models/modelLibrary';
 import { groupByChunk } from './chunking';
 import { SIDES, sideLength, sideNormal, type FacadeLayout, type FacadeType, type RoofRole, type Side } from './facadeLayout';
+import { farAtlas, GLASS_GLOW, nightSky, paneGlow, signTexture, type FarWall, type Glass } from './facadeTextures';
 import { addInstancedModel } from './instancedChunks';
 import type { BuildingSpec } from './types';
 
 const F = CONFIG.facade;
 type V3 = [number, number, number];
-type Glass = 'dark' | 'warm' | 'blue';
 /** One big instanced group per LOD: everything already sits in one chunk. */
 const ONE_CHUNK = Infinity; // x / Infinity is ±0 for every item, so all land in key "0,0"
 
@@ -19,11 +19,7 @@ const STYLE: Record<FacadeType, { sill: number; top: number; trim: number; plint
   baksteen: { sill: 0.8, top: 2.6, trim: 0xfde4c7, plinth: (w) => mix(w, 0x2c2a33, 0.35) },
   flat: { sill: 0.5, top: 2.6, trim: 0xf7f7fa, plinth: () => 0x666b80 },
 };
-const ROOF_COLOUR = 0x4f5260, GLASS_DARK = 0x2a3a58, SHOP_H = { v0: 0.4, v1: 3.0, door: 2.6 };
-const SIGN_COLOURS = [0x38a177, 0xffc044, 0xff7e44, 0xcf534f, 0x6794d9, 0xa878e8];
-const PX_PER_M = 4;
-/** Share of shop windows without an awning that still have their lights on. */
-const PLINTH_LIT_SHARE = 0.45;
+const ROOF_COLOUR = 0x4f5260, SHOP_H = { v0: 0.4, v1: 3.0, door: 2.6 };
 
 /** Deterministic 0..1 from a position and a counter (no rng state needed in the geometry). */
 function hash01(x: number, z: number, k: number): number {
@@ -127,7 +123,7 @@ function holesFor(f: Face, b: BuildingSpec, l: FacadeLayout, P: number): Hole[] 
     const segs = shopSegments(f.L), door = Math.floor(segs.length / 2);
     segs.forEach(([u0, u1], i) => {
       const v0 = i === door && segs.length > 1 ? 0 : SHOP_H.v0, v1 = i === door && segs.length > 1 ? SHOP_H.door : SHOP_H.v1;
-      const lit = plinth.awning || hash01(b.x, b.z, f.side * 31 + i) < PLINTH_LIT_SHARE;
+      const lit = plinth.awning || hash01(b.x, b.z, f.side * 31 + i) < F.plinthLitShare;
       holes.push({ u0, u1, v0, v1, panes: [{ u0, u1, glass: lit ? 'warm' : 'dark' }], mullions: [], sill: false });
     });
   }
@@ -224,134 +220,38 @@ function buildingNear(ms: Meshers, b: BuildingSpec, l: FacadeLayout, cx: number,
   roofAndEdge(ms, b, cx, cz, st.trim);
 }
 
-/** Glass reflects a dim night sky: dark above, a warm city glow at the horizon. */
-let skyEnv: THREE.Texture | null = null;
-function nightSky(): THREE.Texture {
-  if (skyEnv) return skyEnv;
-  const c = document.createElement('canvas'); c.width = 64; c.height = 32;
-  const ctx = c.getContext('2d')!;
-  const grad = ctx.createLinearGradient(0, 0, 0, 32);
-  grad.addColorStop(0, '#15182e'); grad.addColorStop(0.35, '#2f3358'); grad.addColorStop(0.48, '#6a6488');
-  grad.addColorStop(0.52, '#9a7c70'); grad.addColorStop(0.62, '#3a3644'); grad.addColorStop(1, '#1a1a22');
-  ctx.fillStyle = grad; ctx.fillRect(0, 0, 64, 32);
-  skyEnv = new THREE.CanvasTexture(c);
-  skyEnv.mapping = THREE.EquirectangularReflectionMapping;
-  skyEnv.colorSpace = THREE.SRGBColorSpace;
-  return skyEnv;
-}
-
-/** Soft falloff inside a lit pane: brighter ceiling, darker curtain edges. */
-let paneTex: THREE.Texture | null = null;
-function paneGlow(): THREE.Texture {
-  if (paneTex) return paneTex;
-  const c = document.createElement('canvas'); c.width = 32; c.height = 32;
-  const ctx = c.getContext('2d')!;
-  const v = ctx.createLinearGradient(0, 0, 0, 32);
-  v.addColorStop(0, '#ffffff'); v.addColorStop(1, '#9a9a9a');
-  ctx.fillStyle = v; ctx.fillRect(0, 0, 32, 32);
-  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(0, 0, 5, 32); ctx.fillRect(27, 0, 5, 32);
-  paneTex = new THREE.CanvasTexture(c);
-  paneTex.colorSpace = THREE.SRGBColorSpace;
-  return paneTex;
-}
-
 let materials: Record<'wall' | 'trim' | 'dark' | 'warm' | 'blue', THREE.Material> | null = null;
 function facadeMaterials(): NonNullable<typeof materials> {
   materials ??= {
     wall: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0 }),
     trim: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0 }),
-    dark: new THREE.MeshStandardMaterial({ color: GLASS_DARK, roughness: 0.15, metalness: 0.5, emissive: 0x0c1424, envMap: nightSky(), envMapIntensity: 1.5 }),
-    warm: new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffd27a, emissiveMap: paneGlow() }),
-    blue: new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0x8fb8ff, emissiveMap: paneGlow() }),
+    dark: new THREE.MeshStandardMaterial({ color: F.glassDark, roughness: 0.15, metalness: 0.5, emissive: F.glassDarkEmissive, envMap: nightSky(), envMapIntensity: 1.5 }),
+    warm: new THREE.MeshStandardMaterial({ color: 0x000000, emissive: GLASS_GLOW.warm, emissiveMap: paneGlow() }),
+    blue: new THREE.MeshStandardMaterial({ color: 0x000000, emissive: GLASS_GLOW.blue, emissiveMap: paneGlow() }),
   };
   return materials;
 }
 
-/** Shelf-packed canvas atlas; cells are allocated top-left to bottom-right. */
-class Atlas {
-  readonly canvas = document.createElement('canvas');
-  private rects: { x: number; y: number; w: number; h: number }[] = [];
-  private cx = 0; private cy = 0; private row = 0;
-  constructor(private width: number) {}
-  alloc(w: number, h: number): number {
-    w = Math.min(Math.ceil(w), this.width);
-    if (this.cx + w > this.width) { this.cx = 0; this.cy += this.row; this.row = 0; }
-    this.rects.push({ x: this.cx, y: this.cy, w, h: Math.ceil(h) });
-    this.cx += w; this.row = Math.max(this.row, Math.ceil(h));
-    return this.rects.length - 1;
-  }
-  rect(i: number): { x: number; y: number; w: number; h: number } { return this.rects[i]; }
-  /** Sizes the canvas (power of two height) and returns its 2D context. */
-  finish(): CanvasRenderingContext2D {
-    this.canvas.width = this.width;
-    this.canvas.height = THREE.MathUtils.ceilPowerOfTwo(Math.max(1, this.cy + this.row));
-    return this.canvas.getContext('2d')!;
-  }
-  /** UVs of a cell corner order (bottom-left, bottom-right, top-right, top-left); canvas y runs down. */
-  uv(i: number, pad = 0): [number, number][] {
-    const r = this.rects[i], W = this.canvas.width, H = this.canvas.height;
-    const u0 = (r.x + pad) / W, u1 = (r.x + r.w - pad) / W, vTop = 1 - (r.y + pad) / H, vBot = 1 - (r.y + r.h - pad) / H;
-    return [[u0, vBot], [u1, vBot], [u1, vTop], [u0, vTop]];
-  }
-}
-
-const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;
-
 /** Far level: one box per building, its window pattern painted into a colour and a glow atlas. */
 function buildFar(specs: BuildingSpec[], layouts: FacadeLayout[], ox: number, oz: number): THREE.Mesh | null {
-  const PAD = 2, atlas = new Atlas(1024);
-  const cells = specs.map((b) => SIDES.map((s) => atlas.alloc(sideLength(b, s) * PX_PER_M + PAD * 2, b.h * PX_PER_M + PAD * 2)));
-  const roofCell = atlas.alloc(8, 8);
-  const ctx = atlas.finish();
-  const glow = document.createElement('canvas'); glow.width = atlas.canvas.width; glow.height = atlas.canvas.height;
-  const gctx = glow.getContext('2d')!;
-  gctx.fillStyle = '#000'; gctx.fillRect(0, 0, glow.width, glow.height);
-  const r0 = atlas.rect(roofCell); ctx.fillStyle = hex(ROOF_COLOUR); ctx.fillRect(r0.x, r0.y, r0.w, r0.h);
-
+  const faces = specs.map((b) => SIDES.map((side) => new Face(b.x - ox, b.z - oz, b, side)));
+  const walls: FarWall[] = specs.flatMap((b, i) => {
+    const l = layouts[i], P = Math.min(F.plinthH, b.h), plinth = STYLE[l.type].plinth(l.wall);
+    return faces[i].map((f) => ({
+      L: f.L, H: b.h, wall: l.wall, plinth, plinthH: P,
+      panes: holesFor(f, b, l, P).flatMap((h) => h.panes.map((p) => ({ u0: p.u0, u1: p.u1, v0: h.v0, v1: h.v1, glass: p.glass }))),
+    }));
+  });
+  const atlas = farAtlas(walls, ROOF_COLOUR);
   const m = new Mesher();
   specs.forEach((b, i) => {
-    const l = layouts[i], st = STYLE[l.type], P = Math.min(F.plinthH, b.h);
-    for (const side of SIDES) {
-      const f = new Face(b.x - ox, b.z - oz, b, side), r = atlas.rect(cells[i][side]);
-      const px = (u: number): number => r.x + PAD + (u + f.L / 2) * PX_PER_M;
-      const py = (v: number): number => r.y + PAD + (b.h - v) * PX_PER_M;
-      ctx.fillStyle = hex(l.wall); ctx.fillRect(r.x, r.y, r.w, r.h);
-      ctx.fillStyle = hex(st.plinth(l.wall)); ctx.fillRect(r.x, py(P), r.w, r.y + r.h - py(P));
-      for (const h of holesFor(f, b, l, P)) for (const p of h.panes) {
-        const x = px(p.u0), y = py(h.v1), w = (p.u1 - p.u0) * PX_PER_M, hh = (h.v1 - h.v0) * PX_PER_M;
-        const lit = p.glass === 'warm' ? '#ffd27a' : p.glass === 'blue' ? '#8fb8ff' : null;
-        ctx.fillStyle = lit ?? hex(GLASS_DARK); ctx.fillRect(x, y, w, hh);
-        if (lit) { gctx.fillStyle = lit; gctx.fillRect(x, y, w, hh); }
-      }
-      f.quad(m, -f.L / 2, f.L / 2, 0, b.h, 0, atlas.uv(cells[i][side], PAD));
-    }
+    faces[i].forEach((f, side) => f.quad(m, -f.L / 2, f.L / 2, 0, b.h, 0, atlas.wallUv[i * SIDES.length + side]));
     const x0 = b.x - ox - b.w / 2, x1 = b.x - ox + b.w / 2, z0 = b.z - oz - b.d / 2, z1 = b.z - oz + b.d / 2;
-    m.quad([[x0, b.h, z0], [x1, b.h, z0], [x1, b.h, z1], [x0, b.h, z1]], [0, 1, 0], atlas.uv(roofCell, 2));
+    m.quad([[x0, b.h, z0], [x1, b.h, z0], [x1, b.h, z1], [x0, b.h, z1]], [0, 1, 0], atlas.roofUv);
   });
-  const map = new THREE.CanvasTexture(atlas.canvas), emissiveMap = new THREE.CanvasTexture(glow);
-  map.colorSpace = emissiveMap.colorSpace = THREE.SRGBColorSpace;
-  map.anisotropy = 4;
-  return m.mesh(new THREE.MeshStandardMaterial({ map, emissiveMap, emissive: 0xffffff, emissiveIntensity: 0.75, roughness: 0.9 }), { uv: true });
-}
-
-/** Shop signs: one canvas atlas per chunk, drawn on an unlit material so they read as lightboxes. */
-function signTexture(names: string[]): { tex: THREE.CanvasTexture; atlas: Atlas; cells: number[]; aspect: number[] } {
-  const atlas = new Atlas(512), cellH = 64, font = 'bold 36px "Trebuchet MS", Arial, sans-serif';
-  const measure = document.createElement('canvas').getContext('2d')!; measure.font = font;
-  const widths = names.map((n) => Math.min(512, Math.ceil(measure.measureText(n).width) + 40));
-  const cells = widths.map((w) => atlas.alloc(w, cellH));
-  const ctx = atlas.finish();
-  names.forEach((name, i) => {
-    const r = atlas.rect(cells[i]);
-    const bg = SIGN_COLOURS[[...name].reduce((a, ch) => a + ch.charCodeAt(0), 0) % SIGN_COLOURS.length];
-    ctx.fillStyle = '#2c2a33'; ctx.fillRect(r.x, r.y, r.w, r.h);
-    ctx.fillStyle = hex(bg); ctx.fillRect(r.x + 4, r.y + 4, r.w - 8, r.h - 8);
-    ctx.fillStyle = bg === 0xffc044 ? '#2c2a33' : '#ffffff'; ctx.font = font; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(name, r.x + r.w / 2, r.y + r.h / 2 + 2, r.w - 24);
-  });
-  const tex = new THREE.CanvasTexture(atlas.canvas);
-  tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
-  return { tex, atlas, cells, aspect: widths.map((w) => w / cellH) };
+  return m.mesh(new THREE.MeshStandardMaterial({
+    map: atlas.map, emissiveMap: atlas.emissiveMap, emissive: 0xffffff, emissiveIntensity: F.farEmissiveIntensity, roughness: 0.9,
+  }), { uv: true });
 }
 
 function bboxSize(parts: ModelParts): THREE.Vector3 {
@@ -391,7 +291,7 @@ function buildNear(specs: BuildingSpec[], layouts: FacadeLayout[], ox: number, o
         awnings.push({ x, z, y: 0, yaw, s, color: 0xffffff });
       }
       if (p.shop && signs) {
-        const k = shopsHere.indexOf(p.shop), h = 0.8, w = Math.min(signs.aspect[k] * h, f.L - 1), hh = Math.min(h, w / signs.aspect[k]);
+        const k = shopsHere.indexOf(p.shop), h = F.signH, w = Math.min(signs.aspect[k] * h, f.L - 1), hh = Math.min(h, w / signs.aspect[k]);
         const v0 = 3.55 - hh / 2;
         f.quad(ms.sign, -w / 2, w / 2, v0, v0 + hh, 0.06, signs.atlas.uv(signs.cells[k], 1));
       }
@@ -412,12 +312,13 @@ function buildNear(specs: BuildingSpec[], layouts: FacadeLayout[], ox: number, o
 }
 
 /**
- * Facades built in code: per chunk a THREE.LOD with a detailed near level (recessed windows, ledges,
- * awnings, signs and roof parts) and a far level (flat boxes with a painted window atlas).
+ * Facades built in code: per LOD cell (`facade.lodCellM`, one city block) a THREE.LOD with a detailed near
+ * level (recessed windows, ledges, awnings, signs and roof parts) and a far level (flat boxes with a painted
+ * window atlas). The LOD measures from the middle of its cell, so the cell must be small next to `lodNearM`.
  */
 export function buildFacades(scene: THREE.Object3D, specs: readonly BuildingSpec[], layouts: readonly FacadeLayout[], lib: ModelLibrary): void {
   const indexed = specs.map((b, i) => ({ x: b.x, z: b.z, i }));
-  for (const list of groupByChunk(indexed, CONFIG.world.chunkSizeM).values()) {
+  for (const list of groupByChunk(indexed, F.lodCellM).values()) {
     const bs = list.map((e) => specs[e.i]), ls = list.map((e) => layouts[e.i]);
     const ox = Math.round(bs.reduce((a, b) => a + b.x, 0) / bs.length), oz = Math.round(bs.reduce((a, b) => a + b.z, 0) / bs.length);
     const lod = new THREE.LOD();

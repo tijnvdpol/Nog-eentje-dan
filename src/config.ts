@@ -36,9 +36,23 @@ export const CONFIG = {
               kantoor: [0x868ba1, 0xa0a8c9, 0x8e95b3, 0x666b80, 0xbcc5ec, 0x6d738a],
               baksteen: [0xb06041, 0xcf735b, 0x995a41, 0xab5f41, 0xc46d56, 0x875542],
               flat: [0xfde4c7, 0xf2bf99, 0xfaae8a, 0xf7f7fa, 0xf1976c, 0xdcdce9],
-            } as Record<'kantoor' | 'baksteen' | 'flat', readonly number[]> },
-  sidewalk: { widthM: 2.5, kerbH: 0.15 },
+            } as Record<'kantoor' | 'baksteen' | 'flat', readonly number[]>,
+            /** Share of shop windows without an awning that still have their lights on. */
+            plinthLitShare: 0.45,
+            /** Unlit window glass: colour and the faint glow that keeps it from going pitch black. */
+            glassDark: 0x2a3a58, glassDarkEmissive: 0x0c1424,
+            /** Glow of the lit windows painted into the far-level texture. */
+            farEmissiveIntensity: 0.75,
+            /** Height of a shop sign board, in metres (it hangs above the awning). */
+            signH: 0.8,
+            /** Facades are grouped per cell this size (one city block) for the near/far switch at `lodNearM`. */
+            lodCellM: 100 },
+  sidewalk: { widthM: 2.5, kerbH: 0.15,
+              /** Slab and kerb-stone colours; `loweredH` is the height of the lowered parts (zebras, crossing corners). */
+              colour: 0x666a78, kerbColour: 0x9da4b8, loweredH: 0.04 },
+  props: { benchEveryM: 60, binEveryM: 45,
+           /** Kept clear around nodes and places; distance from the sidewalk's back (building-side) edge. */
+           nodeClearM: 15, placeClearM: 15, backM: 0.4 },
   light: { windowLitShare: 0.35, windowWarmShare: 0.8, houseLitShare: 0.6, bloomStrength: 0.6, bloomRadius: 0.4, bloomThreshold: 0.85 },
-  proefblok: { codeBlock: { x0: -200, z0: -200 }, kenneyBlock: { x0: -100, z0: -200 }, size: 100 },
   audio: { lowpassMaxHz: 20000, lowpassMinHz: 800, wobbleFromPromille: 1.3, wobbleMaxCents: 30, gearBandKmh: 30, maxGear: 4, tiresMinKmh: 20 },
 } as const;

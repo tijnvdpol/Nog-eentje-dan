@@ -1,0 +1,14 @@
+{
+  "proef-1": {
+    "calls": 151,
+    "triangles": 183960
+  },
+  "meet-stad": {
+    "calls": 172,
+    "triangles": 224742
+  },
+  "meet-ring": {
+    "calls": 43,
+    "triangles": 25400
+  }
+}

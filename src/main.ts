@@ -107,7 +107,7 @@ async function startGame(): Promise<void> {
   world.timestep = CONFIG.loop.fixedDt;
 
   const renderer = new Renderer(canvas);
-  buildCity(renderer.scene, world, graph, generateCityLayout(graph, CONFIG.world.seed), { lib, shops, proefblok: params.has('proefblok') });
+  buildCity(renderer.scene, world, graph, generateCityLayout(graph, CONFIG.world.seed), { lib, shops });
   buildVillage(renderer.scene, world, graph, generateVillageLayout(graph, CONFIG.world.seed), nwegDecor(graph, mulberry32(CONFIG.world.seed)));
   buildTankstation(renderer.scene, world);
   buildSpeedCameras(renderer.scene, world, graph);

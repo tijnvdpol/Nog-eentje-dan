@@ -4,7 +4,7 @@ import { chromium } from 'playwright';
 import { createServer } from 'vite';
 import { SHOTS, shotById } from '../src/debug/shots';
 
-/** Usage: npm run shots -- [ids...] [--out dir] [--query "proefblok"] */
+/** Usage: npm run shots -- [ids...] [--out dir] [--query "debug"] */
 const MAX_CALLS = 400;
 const MAX_TRIANGLES = 1_500_000;
 const SHOT_TIMEOUT_MS = 120_000;

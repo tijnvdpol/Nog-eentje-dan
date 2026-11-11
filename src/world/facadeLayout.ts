@@ -30,8 +30,8 @@ export const ROOF_PART_SIZE: Record<RoofRole, { w: number; d: number }> = {
   'roof.lift': { w: 2.6, d: 3.2 },
 };
 const ROOF_ROLES: readonly RoofRole[] = ['roof.ac', 'roof.ac', 'roof.tank', 'roof.lift'];
-/** A plinth side needs this much wall for an awning. */
-const AWNING_MIN_WALL_M = 4;
+/** A plinth side needs this much wall for an awning; `awningShare` counts only these sides. */
+export const AWNING_MIN_WALL_M = 4;
 const STREET_PROBE_M = 3, STREET_REACH_M = 12;
 
 export const sideLength = (b: Pick<BuildingSpec, 'w' | 'd'>, s: Side): number => (s < 2 ? b.d : b.w);
@@ -100,7 +100,8 @@ export function facadeLayout(
       }
 
   const plinth: PlinthPart[] = street.map((side) => {
-    const awning = rng() < F.awningShare && sideLength(b, side) >= AWNING_MIN_WALL_M;
+    const roll = rng(); // drawn for every side, so the rest of the plan does not depend on eligibility
+    const awning = sideLength(b, side) >= AWNING_MIN_WALL_M && roll < F.awningShare;
     const shop = awning && shops.length ? shops[Math.floor(rng() * shops.length)] : null;
     return { side, awning, shop };
   });

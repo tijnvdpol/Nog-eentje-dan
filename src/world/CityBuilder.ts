@@ -1,14 +1,17 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CONFIG } from '../config';
 import { mulberry32 } from '../util/rng';
-import type { ModelLibrary } from '../models/modelLibrary';
-import type { ModelRole } from '../models/roles';
+import { codeModel } from '../models/codeModels';
+import type { ModelLibrary, ModelParts } from '../models/modelLibrary';
+import { groupByChunk } from './chunking';
 import { buildFacades } from './facadeGeometry';
-import { facadeLayout, sideNormal, streetSides } from './facadeLayout';
+import { facadeLayout, streetSides } from './facadeLayout';
 import { addInstancedChunks, addInstancedModel } from './instancedChunks';
 import type { RoadGraph } from './roadGraph';
-import { sidewalkCorners, sidewalkSegments } from './sidewalks';
+import { sidewalkCorners, sidewalkSegments, type SidewalkSegment } from './sidewalks';
+import { lampPositions, streetProps } from './streetProps';
 import type { BuildingSpec } from './types';
 
 const LANE_W = CONFIG.traffic.laneWidthM;
@@ -28,19 +31,10 @@ export interface CityOptions {
   lib: ModelLibrary;
   /** Made-up shop names for the signs (content/shops.json); empty gives awnings without a sign. */
   shops: readonly string[];
-  /** `?proefblok`: Kenney buildings in the comparison block instead of plain boxes. */
-  proefblok: boolean;
 }
-
-type Block = { x0: number; z0: number };
-const inBlock = (blk: Block, x: number, z: number, margin = 0): boolean => {
-  const size = CONFIG.proefblok.size;
-  return x > blk.x0 - margin && x < blk.x0 + size + margin && z > blk.z0 - margin && z < blk.z0 + size + margin;
-};
 
 export function buildCity(scene: THREE.Scene, world: RAPIER.World, g: RoadGraph, buildings: BuildingSpec[], opts: CityOptions): void {
   const rng = mulberry32(CONFIG.world.seed);
-  const P = CONFIG.proefblok;
 
   // Ground
   const ground = new THREE.Mesh(
@@ -71,44 +65,41 @@ export function buildCity(scene: THREE.Scene, world: RAPIER.World, g: RoadGraph,
   });
   scene.add(roads, lines);
 
-  // Buildings: code facades in the proefblok, Kenney models in the comparison block (?proefblok), boxes elsewhere
-  const isCode = (b: BuildingSpec): boolean => inBlock(P.codeBlock, b.x, b.z);
-  const isKenney = (b: BuildingSpec): boolean => opts.proefblok && inBlock(P.kenneyBlock, b.x, b.z);
-  const code = buildings.map((b, i) => ({ b, i })).filter(({ b }) => isCode(b));
-  buildFacades(scene, code.map((e) => e.b),
-    code.map(({ b, i }) => facadeLayout(b, i, CONFIG.world.seed, streetSides(b, g), opts.shops)), opts.lib);
-  buildKenneyBlock(scene, buildings.filter(isKenney), g, opts.lib);
-  const boxes = buildings.filter((b) => !isCode(b) && !isKenney(b));
-  addInstancedChunks(scene, new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ roughness: 0.85 }), boxes, CHUNK, (b, m, c) => {
-    dummy.position.set(b.x, b.h / 2, b.z); dummy.rotation.set(0, 0, 0); dummy.scale.set(b.w, b.h, b.d); dummy.updateMatrix();
-    m.copy(dummy.matrix); c.setHex(b.color);
-    return true;
-  });
+  // Buildings: code facades (spec §4.1); the colliders are the old building boxes
+  buildFacades(scene, buildings, buildings.map((b, i) => facadeLayout(b, i, CONFIG.world.seed, streetSides(b, g), opts.shops)), opts.lib);
   for (const b of buildings) world.createCollider(RAPIER.ColliderDesc.cuboid(b.w / 2, b.h / 2, b.d / 2).setTranslation(b.x, b.h / 2, b.z));
 
-  // Sidewalks for now only around the proefblok (and the comparison block, so both are judged alike)
-  const nearBlocks = (x: number, z: number): boolean => {
-    const m = CONFIG.traffic.laneWidthM + CONFIG.sidewalk.widthM + 0.01;
-    return inBlock(P.codeBlock, x, z, m) || (opts.proefblok && inBlock(P.kenneyBlock, x, z, m));
-  };
-  buildSidewalks(scene, g, nearBlocks);
-
-  // Street lamps along city streets
-  const lampPositions: { x: number; z: number }[] = [];
-  for (const e of g.edges) {
-    if (e.kind !== 'stad') continue;
-    const a = g.node(e.from), b = g.node(e.to);
-    const len = g.edgeLength(e.id);
-    const fx = (b.x - a.x) / len, fz = (b.z - a.z) / len;
-    for (const s of [25, 75]) lampPositions.push({ x: a.x + fx * s - fz * 5.5, z: a.z + fz * s + fx * 5.5 });
+  // Sidewalks along every city street, benches and bins on their building side (no colliders, spec §4.2–4.3)
+  const sidewalks = sidewalkSegments(g);
+  buildSidewalks(scene, g, sidewalks);
+  const props = streetProps(g, sidewalks, CONFIG.world.seed);
+  for (const kind of ['bench', 'bin'] as const) {
+    addInstancedModel(scene, codeModel(kind === 'bench' ? 'prop.bench' : 'prop.bin'), props.filter((p) => p.kind === kind), CHUNK, (p, m) => {
+      dummy.position.set(p.x, 0, p.z); dummy.rotation.set(0, p.yaw, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); m.copy(dummy.matrix);
+      return false;
+    });
   }
-  const lampAt = (y: number) => (l: { x: number; z: number }, m: THREE.Matrix4) => {
-    dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1, 1); dummy.position.set(l.x, y, l.z); dummy.updateMatrix(); m.copy(dummy.matrix);
+
+  // Street lamps along city streets: the Kenney lamp with its arm over the street, a glowing light in its
+  // head, and the old cylinder collider around the post
+  const lamps = lampPositions(g);
+  const lampParts = opts.lib.get('prop.lamp'), shape = lampShape(lampParts);
+  const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), v = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
+  const turn = (yaw: number): THREE.Quaternion => q.setFromAxisAngle(up, yaw - shape.armYaw);
+  addInstancedModel(scene, lampParts, lamps, CHUNK, (l, m) => {
+    // the post (not the bounding-box centre) stands on the lamp position
+    v.set(-shape.pole.x, 0, -shape.pole.z).applyQuaternion(turn(l.yaw));
+    m.compose(v.set(l.x + v.x, 0, l.z + v.z), q, one);
     return false;
-  };
-  addInstancedChunks(scene, new THREE.CylinderGeometry(0.08, 0.1, 6, 6), new THREE.MeshStandardMaterial({ color: 0x555a63 }), lampPositions, CHUNK, lampAt(3));
-  addInstancedChunks(scene, new THREE.SphereGeometry(0.4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffe9a8 }), lampPositions, CHUNK, lampAt(6.1));
-  for (const { x, z } of lampPositions) world.createCollider(RAPIER.ColliderDesc.cylinder(LAMP_HEIGHT / 2, LAMP_RADIUS).setTranslation(x, LAMP_HEIGHT / 2, z));
+  });
+  // the old ball lamp, flattened into a light under the head; its local z runs along the arm
+  const glowScale = new THREE.Vector3(shape.glow.across / 0.8, 0.3, shape.glow.along / 0.8), glowTurn = new THREE.Quaternion();
+  addInstancedChunks(scene, new THREE.SphereGeometry(0.4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffe9a8 }), lamps, CHUNK, (l, m) => {
+    v.set(shape.glow.x - shape.pole.x, 0, shape.glow.z - shape.pole.z).applyQuaternion(turn(l.yaw));
+    m.compose(v.set(l.x + v.x, shape.glow.y, l.z + v.z), glowTurn.setFromAxisAngle(up, l.yaw), glowScale);
+    return false;
+  });
+  for (const { x, z } of lamps) world.createCollider(RAPIER.ColliderDesc.cylinder(LAMP_HEIGHT / 2, LAMP_RADIUS).setTranslation(x, LAMP_HEIGHT / 2, z));
 
   // Trees around the ring road area
   const ringEdges = g.edgesOfKind('ring');
@@ -165,51 +156,61 @@ export function buildCity(scene: THREE.Scene, world: RAPIER.World, g: RoadGraph,
   scene.add(railMesh);
 }
 
-const SIDEWALK_COLOUR = 0x666a78, KERB_COLOUR = 0x9da4b8, LOWERED_H = 0.04;
+/**
+ * Where the lamp model has its post and its light, in model space: the post is the centre of the lowest
+ * vertices, the head is the far end of the top. A model without an arm (the fallback cylinder) gets its
+ * light on top, like the old ball lamp.
+ */
+function lampShape(parts: ModelParts): {
+  pole: { x: number; z: number }; armYaw: number; glow: { x: number; y: number; z: number; along: number; across: number };
+} {
+  const pts: THREE.Vector3[] = [];
+  for (const p of parts) {
+    const a = p.geometry.getAttribute('position');
+    for (let i = 0; i < a.count; i++) pts.push(new THREE.Vector3().fromBufferAttribute(a, i));
+  }
+  const top = Math.max(...pts.map((p) => p.y));
+  const base = new THREE.Box3().setFromPoints(pts.filter((p) => p.y < top * 0.1)).getCenter(new THREE.Vector3());
+  const reach = (p: THREE.Vector3): number => Math.hypot(p.x - base.x, p.z - base.z);
+  const high = pts.filter((p) => p.y > top * 0.8), maxReach = Math.max(...high.map(reach));
+  if (maxReach < 0.3) return { pole: { x: base.x, z: base.z }, armYaw: 0, glow: { x: base.x, y: top + 0.1, z: base.z, along: 0.8, across: 0.8 } };
+  const head = new THREE.Box3().setFromPoints(high.filter((p) => reach(p) > maxReach / 2));
+  const c = head.getCenter(new THREE.Vector3()), size = head.getSize(new THREE.Vector3());
+  const armYaw = Math.atan2(c.x - base.x, c.z - base.z), sin = Math.abs(Math.sin(armYaw)), cos = Math.abs(Math.cos(armYaw));
+  return {
+    pole: { x: base.x, z: base.z }, armYaw,
+    glow: { x: c.x, y: head.min.y, z: c.z, along: (size.x * sin + size.z * cos) * 0.9, across: (size.x * cos + size.z * sin) * 0.9 },
+  };
+}
 
-/** Sidewalk slabs with a kerb stone on the street side; lowered (no kerb) at zebras and corners. No colliders. */
-function buildSidewalks(scene: THREE.Scene, g: RoadGraph, keep: (x: number, z: number) => boolean): void {
-  const { widthM: W, kerbH } = CONFIG.sidewalk;
-  const segs = sidewalkSegments(g).filter((s) => keep(s.x, s.z));
-  // a corner only where a kept sidewalk ends next to it (no loose squares at the edge of the kept area)
-  const ends = segs.flatMap((s) => [-1, 1].map((d) => ({ x: s.x + Math.sin(s.yaw) * d * s.len / 2, z: s.z + Math.cos(s.yaw) * d * s.len / 2 })));
-  const corners = sidewalkCorners(g).filter((c) => ends.some((e) => Math.hypot(e.x - c.x, e.z - c.z) < W));
-  const slab = new THREE.MeshStandardMaterial({ color: SIDEWALK_COLOUR, roughness: 0.95 });
+/** Boxes merged into one mesh per chunk; `place` gives each box (a unit cube standing on y = 0) its matrix. */
+function mergedBoxes<T extends { x: number; z: number }>(scene: THREE.Object3D, items: readonly T[], material: THREE.Material,
+  place: (item: T, m: THREE.Matrix4) => void): void {
   const unit = new THREE.BoxGeometry(1, 1, 1); unit.translate(0, 0.5, 0);
-  addInstancedChunks(scene, unit, slab, [...segs, ...corners.map((c) => ({ ...c, yaw: 0, len: W, side: 1 as const, kerb: false }))], CHUNK, (s, m) => {
+  const m = new THREE.Matrix4();
+  for (const list of groupByChunk(items, CHUNK).values()) {
+    const merged = mergeGeometries(list.map((it) => { place(it, m); return unit.clone().applyMatrix4(m); }));
+    if (!merged) continue;
+    merged.computeBoundingSphere();
+    scene.add(new THREE.Mesh(merged, material));
+  }
+}
+
+/** Sidewalk slabs with a kerb stone on the street side; lowered (no kerb) at zebras and crossing corners. No colliders. */
+function buildSidewalks(scene: THREE.Scene, g: RoadGraph, segs: readonly SidewalkSegment[]): void {
+  const { widthM: W, kerbH, colour, kerbColour, loweredH } = CONFIG.sidewalk;
+  const slabs = [...segs.map((s) => ({ ...s, raised: s.kerb })), ...sidewalkCorners(g).map((c) => ({ ...c, yaw: 0, len: W }))];
+  mergedBoxes(scene, slabs, new THREE.MeshStandardMaterial({ color: colour, roughness: 0.95 }), (s, m) => {
     dummy.position.set(s.x, 0, s.z); dummy.rotation.set(0, s.yaw, 0);
-    dummy.scale.set(W, s.kerb ? kerbH : LOWERED_H, s.len); dummy.updateMatrix(); m.copy(dummy.matrix);
-    return false;
+    dummy.scale.set(W, s.raised ? kerbH : loweredH, s.len); dummy.updateMatrix(); m.copy(dummy.matrix);
   });
   // kerb stone: 0.2 m wide along the carriageway edge, a little higher than the slab
   const kerbs = segs.filter((s) => s.kerb).map((s) => {
     const off = W / 2 - 0.1, side = -s.side; // towards the road centre line
     return { ...s, x: s.x - Math.cos(s.yaw) * off * side, z: s.z + Math.sin(s.yaw) * off * side };
   });
-  addInstancedChunks(scene, unit, new THREE.MeshStandardMaterial({ color: KERB_COLOUR, roughness: 0.8 }), kerbs, CHUNK, (s, m) => {
+  mergedBoxes(scene, kerbs, new THREE.MeshStandardMaterial({ color: kerbColour, roughness: 0.8 }), (s, m) => {
     dummy.position.set(s.x, 0, s.z); dummy.rotation.set(0, s.yaw, 0);
     dummy.scale.set(0.2, kerbH + 0.02, s.len); dummy.updateMatrix(); m.copy(dummy.matrix);
-    return false;
-  });
-}
-
-const PROEF_ROLES: readonly ModelRole[] = ['proef.a', 'proef.b', 'proef.c'];
-
-/** Kenney comparison buildings: round-robin over proef.a/b/c, front (+z) to the street, uniformly fit in w x d. */
-function buildKenneyBlock(scene: THREE.Scene, list: BuildingSpec[], g: RoadGraph, lib: ModelLibrary): void {
-  const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), sc = new THREE.Vector3();
-  PROEF_ROLES.forEach((role, r) => {
-    const parts = lib.get(role);
-    const box = new THREE.Box3();
-    for (const p of parts) { p.geometry.computeBoundingBox(); box.union(p.geometry.boundingBox!); }
-    const size = box.getSize(new THREE.Vector3());
-    const mine = list.filter((_, i) => i % PROEF_ROLES.length === r);
-    addInstancedModel(scene, parts, mine, CHUNK, (b, m) => {
-      const n = sideNormal(streetSides(b, g)[0] ?? 2);
-      const yaw = Math.atan2(n.x, n.z), turned = Math.abs(n.x) > 0.5;
-      const s = Math.min(b.w / (turned ? size.z : size.x), b.d / (turned ? size.x : size.z));
-      m.compose(pos.set(b.x, 0, b.z), q.setFromAxisAngle(up, yaw), sc.setScalar(s));
-      return false;
-    });
   });
 }

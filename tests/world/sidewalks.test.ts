@@ -86,3 +86,81 @@ describe('sidewalkCorners', () => {
     }
   });
 });
+
+/** End points (centre of the short end) of a segment. */
+const ends = (s: SidewalkSegment): { x: number; z: number; fx: number; fz: number }[] => {
+  const fx = Math.sin(s.yaw), fz = Math.cos(s.yaw);
+  return [-1, 1].map((d) => ({ x: s.x + fx * d * s.len / 2, z: s.z + fz * d * s.len / 2, fx: fx * d, fz: fz * d }));
+};
+const close = (a: { x: number; z: number }, b: { x: number; z: number }, d = 0): boolean => Math.abs(Math.hypot(a.x - b.x, a.z - b.z) - d) < 1e-6;
+
+/** Every segment end either continues in another segment or meets a corner square across one of its sides. */
+function unmatchedEnds(graph: RoadGraph): { x: number; z: number }[] {
+  const all = sidewalkSegments(graph), corners = sidewalkCorners(graph);
+  const out: { x: number; z: number }[] = [];
+  all.forEach((seg, i) => {
+    for (const end of ends(seg)) {
+      const joined = all.some((o, j) => j !== i && ends(o).some((oe) => close(oe, end)));
+      const cornered = corners.some((c) => close(c, end, W / 2)
+        && Math.abs((c.x - end.x) * end.fx + (c.z - end.z) * end.fz - W / 2) < 1e-6);
+      if (!joined && !cornered) out.push(end);
+    }
+  });
+  return out;
+}
+
+describe('sidewalks at T-junctions and corners', () => {
+  // T-junction at (0,0): a straight street west-east, a side street to the south
+  const node = (id: string, x: number, z: number) => ({ id, x, z });
+  const edge = (id: string, from: string, to: string): RoadEdge =>
+    ({ id, from, to, lanesPerDir: 1, speedLimitKmh: 50, zone: 'city', kind: 'stad' });
+  const t = RoadGraph.fromData({
+    nodes: [node('c', 0, 0), node('w', -100, 0), node('e', 100, 0), node('s', 0, -100)],
+    edges: [edge('we', 'w', 'c'), edge('ce', 'c', 'e'), edge('cs', 'c', 's')],
+    places: [],
+  });
+  const tSegs = sidewalkSegments(t);
+  const off = LANE + W / 2;
+
+  it('the straight side of a T-junction is one continuous sidewalk', () => {
+    const north = tSegs.filter((s) => Math.abs(s.z - off) < 1e-6).map((s) => [s.x - s.len / 2, s.x + s.len / 2]).sort((a, b) => a[0] - b[0]);
+    expect(north.length).toBeGreaterThan(0);
+    let x = north[0][0];
+    for (const [x0, x1] of north) { expect(x0).toBeCloseTo(x, 6); x = x1; }
+    expect(north[0][0]).toBeLessThan(-50);
+    expect(x).toBeGreaterThan(50);
+    expect(north.every((s) => tSegs.find((g) => Math.abs(g.x - (s[0] + s[1]) / 2) < 1e-6 && Math.abs(g.z - off) < 1e-6)!.kerb)).toBe(true);
+  });
+
+  it('the side-street side of a T-junction gets two lowered corners', () => {
+    const corners = sidewalkCorners(t);
+    expect(corners).toHaveLength(2);
+    for (const c of corners) {
+      expect(Math.abs(c.x)).toBeCloseTo(off, 6);
+      expect(c.z).toBeCloseTo(-off, 6);
+      expect(c.raised).toBe(false);
+    }
+  });
+
+  it('every segment end meets a segment or a corner square (T-junction)', () => {
+    // the far ends of the three streets are dead ends: nothing to meet there
+    const open = unmatchedEnds(t).filter((p) => Math.hypot(p.x, p.z) < 50);
+    expect(open).toEqual([]);
+  });
+
+  it('every segment end meets a segment or a corner square (whole city)', () => {
+    // allowed: ends next to a non-city road (ramps have no sidewalk)
+    const open = unmatchedEnds(g).filter((p) => !g.nodes.some((n) =>
+      Math.hypot(n.x - p.x, n.z - p.z) < 10 && g.edgesAt(n.id).some((e) => e.kind !== 'stad')));
+    expect(open).toEqual([]);
+  });
+
+  it('the outer side of a plain corner is closed with a raised square', () => {
+    // corner (-300, 300): streets to the east and to the south only
+    const outer = sidewalkCorners(g).filter((c) => c.raised);
+    const here = outer.filter((c) => Math.hypot(c.x + 300, c.z - 300) < 10);
+    expect(here).toHaveLength(1);
+    expect(here[0].x).toBeCloseTo(-300 - (LANE + W / 2), 6);
+    expect(here[0].z).toBeCloseTo(300 + (LANE + W / 2), 6);
+  });
+});
